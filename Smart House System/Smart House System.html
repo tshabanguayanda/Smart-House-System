@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Smart Control</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #eef2f3;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .container {
+            width: 320px;
+            margin: 100px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 0 10px gray;
+            text-align: center;
+        }
+
+        input, select {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid gray;
+        }
+
+        button {
+            padding: 12px 18px;
+            margin: 8px;
+            border: none;
+            border-radius: 8px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .linkBtn {
+            background: transparent;
+            color: #007bff;
+        }
+
+        header {
+            background: #222;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu {
+            background: white;
+            padding: 15px;
+            box-shadow: 0 0 10px gray;
+        }
+
+        .statusBox {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 10px gray;
+        }
+
+        .cards {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: white;
+            width: 260px;
+            margin: 15px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 10px gray;
+            text-align: center;
+        }
+
+        .mainSwitch {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 10px gray;
+            text-align: center;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loginPage" class="container">
+        <h1>Smart House System</h1>
+
+        <input type="text" id="username" placeholder="Enter Username">
+        <input type="password" id="password" placeholder="Enter Password">
+
+        <button onclick="login()">Login</button>
+
+        <br>
+
+        <button class="linkBtn" onclick="forgotPassword()">
+            Forgot Password?
+        </button>
+    </div>
+
+    <div id="wifiPage" class="container hidden">
+        <h1>Select WiFi Network</h1>
+
+        <select id="wifiSelect">
+            <option value="">-- Select WiFi --</option>
+            <option value="Home_WiFi">Home_WiFi</option>
+            <option value="ESP32_Network">ESP32_Network</option>
+            <option value="Campus_WiFi">Campus_WiFi</option>
+            <option value="Office_Network">Office_Network</option>
+        </select>
+
+        <input type="password" id="wifiPassword" placeholder="Enter WiFi Password">
+
+        <button onclick="connectWifi()">Connect WiFi</button>
+
+        <p id="wifiStatus">WiFi Status: Not Connected</p>
+    </div>
+
+    <div id="dashboard" class="hidden">
+
+        <header>
+            <button onclick="toggleMenu()">☰ Menu</button>
+
+            <h2>Smart House System</h2>
+
+            <button onclick="logout()">Logout</button>
+        </header>
+
+        <div id="menu" class="menu hidden">
+            <p>Dashboard</p>
+            <p>WiFi Settings</p>
+            <p>Device Status</p>
+            <p>Timer Settings</p>
+        </div>
+
+        <div class="statusBox">
+            <h3>System Information</h3>
+
+            <p id="systemStatus">System Status: Online ✅</p>
+            <p id="wifiText">WiFi Status: Connected ✅</p>
+
+            <p>
+                Connected Network:
+                <span id="networkName">Home_WiFi</span>
+            </p>
+
+            <p>
+                IP Address:
+                <span id="ipAddress">192.168.1.25</span>
+            </p>
+
+            <p id="currentUser">Logged in as:</p>
+        </div>
+
+        <div class="cards">
+
+            <div class="card">
+                <h3>Light 1</h3>
+
+                <p>
+                    Status:
+                    <span id="light1Status">OFF</span>
+                </p>
+
+                <p>
+                    Time ON:
+                    <span id="light1Timer">00:00:00</span>
+                </p>
+
+                <button onclick="toggleDevice('light1')">ON / OFF</button>
+            </div>
+
+            <div class="card">
+                <h3>Light 2</h3>
+
+                <p>
+                    Status:
+                    <span id="light2Status">OFF</span>
+                </p>
+
+                <p>
+                    Time ON:
+                    <span id="light2Timer">00:00:00</span>
+                </p>
+
+                <button onclick="toggleDevice('light2')">ON / OFF</button>
+            </div>
+
+            <div class="card">
+                <h3>Plug 1</h3>
+
+                <p>
+                    Status:
+                    <span id="plug1Status">OFF</span>
+                </p>
+
+                <p>
+                    Time ON:
+                    <span id="plug1Timer">00:00:00</span>
+                </p>
+
+                <button onclick="toggleDevice('plug1')">ON / OFF</button>
+            </div>
+
+        </div>
+
+        <div class="mainSwitch">
+            <h3>Main Switch Test</h3>
+
+            <button onclick="turnAllOn()">Turn All ON</button>
+            <button onclick="turnAllOff()">Turn All OFF</button>
+        </div>
+
+    </div>
+
+    <script>
+        let users = [
+            {
+                username: "mahle",
+                password: "1234"
+            },
+            {
+                username: "yaya",
+                password: "1234"
+            },
+            {
+                username: "nka",
+                password: "1234"
+            },
+            {
+                username: "bontle",
+                password: "1234"
+            },
+            {
+                username: "lungelo",
+                password: "1234"
+            }
+        ];
+
+        let loggedInUser = "";
+
+        let mainSwitchOn = true;
+
+        let devices = {
+            light1: {
+                status: false,
+                seconds: 0
+            },
+            light2: {
+                status: false,
+                seconds: 0
+            },
+            plug1: {
+                status: false,
+                seconds: 0
+            }
+        };
+
+        function login() {
+            let username = document.getElementById("username").value.toLowerCase();
+            let password = document.getElementById("password").value;
+
+            let validUser = false;
+
+            for (let i = 0; i < users.length; i++) {
+                if (
+                    username === users[i].username &&
+                    password === users[i].password
+                ) {
+                    validUser = true;
+                    loggedInUser = username;
+                    break;
+                }
+            }
+
+            if (validUser) {
+                alert("Login Successful ✅");
+
+                document.getElementById("loginPage").classList.add("hidden");
+                document.getElementById("wifiPage").classList.remove("hidden");
+            } else {
+                alert("Incorrect username or password ❌");
+            }
+        }
+
+        function forgotPassword() {
+            alert("Contact system administrator to reset password.");
+        }
+
+        function connectWifi() {
+            let selectedWifi = document.getElementById("wifiSelect").value;
+            let wifiPassword = document.getElementById("wifiPassword").value;
+
+            if (selectedWifi !== "" && wifiPassword !== "") {
+                document.getElementById("wifiStatus").innerHTML =
+                    "WiFi Status: Connected Successfully ✅";
+
+                setTimeout(function () {
+                    document.getElementById("wifiPage").classList.add("hidden");
+                    document.getElementById("dashboard").classList.remove("hidden");
+
+                    document.getElementById("currentUser").innerHTML =
+                        "Logged in as: " + loggedInUser;
+
+                    document.getElementById("networkName").innerHTML =
+                        selectedWifi;
+
+                }, 1000);
+            } else {
+                alert("Please select WiFi and enter password");
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById("menu").classList.toggle("hidden");
+        }
+
+        function logout() {
+            document.getElementById("dashboard").classList.add("hidden");
+            document.getElementById("loginPage").classList.remove("hidden");
+
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+        }
+
+        function toggleDevice(deviceName) {
+            if (mainSwitchOn === false) {
+                alert("Main switch is OFF. Turn All ON first before switching lights or plug on.");
+                return;
+            }
+
+            devices[deviceName].status = !devices[deviceName].status;
+
+            updateDisplay();
+
+            // ESP32 CODE GOES HERE LATER
+        }
+
+        function turnAllOn() {
+            mainSwitchOn = true;
+
+            devices.light1.status = true;
+            devices.light2.status = true;
+            devices.plug1.status = true;
+
+            updateDisplay();
+
+            // ESP32 CODE GOES HERE LATER
+        }
+
+        function turnAllOff() {
+            mainSwitchOn = false;
+
+            devices.light1.status = false;
+            devices.light2.status = false;
+            devices.plug1.status = false;
+
+            updateDisplay();
+
+            // ESP32 CODE GOES HERE LATER
+        }
+
+        function updateDisplay() {
+            document.getElementById("light1Status").innerHTML =
+                devices.light1.status ? "ON" : "OFF";
+
+            document.getElementById("light2Status").innerHTML =
+                devices.light2.status ? "ON" : "OFF";
+
+            document.getElementById("plug1Status").innerHTML =
+                devices.plug1.status ? "ON" : "OFF";
+        }
+
+        function formatTime(seconds) {
+            let hrs = Math.floor(seconds / 3600);
+            let mins = Math.floor((seconds % 3600) / 60);
+            let secs = seconds % 60;
+
+            return (
+                String(hrs).padStart(2, "0") +
+                ":" +
+                String(mins).padStart(2, "0") +
+                ":" +
+                String(secs).padStart(2, "0")
+            );
+        }
+
+        setInterval(function () {
+            if (devices.light1.status) {
+                devices.light1.seconds++;
+            }
+
+            if (devices.light2.status) {
+                devices.light2.seconds++;
+            }
+
+            if (devices.plug1.status) {
+                devices.plug1.seconds++;
+            }
+
+            document.getElementById("light1Timer").innerHTML =
+                formatTime(devices.light1.seconds);
+
+            document.getElementById("light2Timer").innerHTML =
+                formatTime(devices.light2.seconds);
+
+            document.getElementById("plug1Timer").innerHTML =
+                formatTime(devices.plug1.seconds);
+
+        }, 1000);
+    </script>
+
+</body>
+
+</html>
