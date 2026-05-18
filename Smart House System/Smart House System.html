@@ -242,7 +242,7 @@
     </div>
 
     <script>
-        const esp32IP = "https://192.168.1.25"; //Replace with the correct IP
+        const esp32IP = "http://192.168.1.25"; //Replace with the correct IP
         let users = [
             {
                 username: "mahle",
@@ -368,7 +368,7 @@
              fetch(`${esp32IP}/${deviceName}/${state}`)
                 .then(response => response.text())
                 .then(data => console.log(data))
-                .catch(error => alert("ESP32-CAM not connected"));
+                .catch(error => alert("ESP32 not connected"));
         }
 
         function turnAllOn() {
@@ -384,7 +384,7 @@
             fetch(`${esp32IP}/all/on`)
                 .then(response => response.text())
                 .then(data => console.log(data))
-                .catch(error => alert("ESP32-CAM not connected"));
+                .catch(error => alert("ESP32 not connected"));
         }
 
         function turnAllOff() {
@@ -400,7 +400,7 @@
             fetch(`${esp32IP}/all/off`)
                 .then(response => response.text())
                 .then(data => console.log(data))
-                .catch(error => alert("ESP32-CAM not connected"));
+                .catch(error => alert("ESP32 not connected"));
         }
 
         function updateDisplay() {
