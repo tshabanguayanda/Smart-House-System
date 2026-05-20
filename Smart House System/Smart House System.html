@@ -300,23 +300,47 @@
 
       // DEVICES
       function toggleDevice(deviceName) {
+
         devices[deviceName].status = !devices[deviceName].status;
+
         updateDisplay();
-      }
+
+        let state = devices[deviceName].status ? "on" : "off";
+
+        fetch(`${esp32IP}/${deviceName}/${state}`)
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => alert("ESP32 not connected"));
+    }
 
       function turnAllOn() {
+
         devices.light1.status = true;
         devices.light2.status = true;
         devices.plug1.status = true;
+
         updateDisplay();
-      }
+
+        fetch(`${esp32IP}/all/on`)
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => alert("ESP32 not connected"));
+    }
 
       function turnAllOff() {
+
         devices.light1.status = false;
         devices.light2.status = false;
         devices.plug1.status = false;
+
         updateDisplay();
-      }
+
+        fetch(`${esp32IP}/all/off`)
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => alert("ESP32 not connected"));
+    }
+    
 
       function updateDisplay() {
         document.getElementById("light1Status").innerHTML = devices.light1
