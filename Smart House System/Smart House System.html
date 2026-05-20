@@ -1,458 +1,348 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ESP32 Smart Control</title>
 
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #eef2f3;
-        }
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #eef2f3;
+      }
 
-        .hidden {
-            display: none;
-        }
+      .hidden {
+        display: none;
+      }
 
-        .container {
-            width: 320px;
-            margin: 100px auto;
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 0 10px gray;
-            text-align: center;
-        }
+      .container {
+        width: 320px;
+        margin: 100px auto;
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 0 10px gray;
+        text-align: center;
+      }
 
-        input, select {
-            width: 90%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: 1px solid gray;
-        }
+      input {
+        width: 90%;
+        padding: 12px;
+        margin: 10px 0;
+        border-radius: 8px;
+        border: 1px solid gray;
+      }
 
-        button {
-            padding: 12px 18px;
-            margin: 8px;
-            border: none;
-            border-radius: 8px;
-            background: #007bff;
-            color: white;
-            cursor: pointer;
-            font-size: 15px;
-        }
+      button {
+        padding: 12px 18px;
+        margin: 8px;
+        border: none;
+        border-radius: 8px;
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+        font-size: 15px;
+      }
 
-        button:hover {
-            background: #0056b3;
-        }
+      button:hover {
+        background: #0056b3;
+      }
 
-        .linkBtn {
-            background: transparent;
-            color: #007bff;
-        }
+      .linkBtn {
+        background: transparent;
+        color: #007bff;
+      }
 
-        header {
-            background: #222;
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+      header {
+        background: #222;
+        color: white;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
 
-        .menu {
-            background: white;
-            padding: 15px;
-            box-shadow: 0 0 10px gray;
-        }
+      .menu {
+        background: white;
+        padding: 15px;
+        box-shadow: 0 0 10px gray;
+      }
 
-        .statusBox {
-            background: white;
-            margin: 20px;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 0 10px gray;
-        }
+      .statusBox {
+        background: white;
+        margin: 20px;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 0 10px gray;
+      }
 
-        .cards {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
+      .cards {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
 
-        .card {
-            background: white;
-            width: 260px;
-            margin: 15px;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 0 10px gray;
-            text-align: center;
-        }
+      .card {
+        background: white;
+        width: 260px;
+        margin: 15px;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 0 10px gray;
+        text-align: center;
+      }
 
-        .mainSwitch {
-            background: white;
-            margin: 20px;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 0 10px gray;
-            text-align: center;
-        }
+      .mainSwitch {
+        background: white;
+        margin: 20px;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 0 10px gray;
+        text-align: center;
+      }
 
-        h1, h2, h3 {
-            margin-top: 0;
-        }
+      h1,
+      h2,
+      h3 {
+        margin-top: 0;
+      }
     </style>
-</head>
+  </head>
 
-<body>
-
+  <body>
+    <!-- LOGIN -->
     <div id="loginPage" class="container">
-        <h1>Smart House System</h1>
+      <h1>ESP32 Smart Control</h1>
 
-        <input type="text" id="username" placeholder="Enter Username">
-        <input type="password" id="password" placeholder="Enter Password">
+      <input type="text" id="username" placeholder="Enter Username" />
+      <input type="password" id="password" placeholder="Enter Password" />
 
-        <button onclick="login()">Login</button>
+      <button onclick="login()">Login</button>
 
-        <br>
+      <br />
 
-        <button class="linkBtn" onclick="forgotPassword()">
-            Forgot Password?
-        </button>
+      <button class="linkBtn" onclick="forgotPassword()">
+        Forgot Password?
+      </button>
     </div>
 
+    <!-- WIFI -->
     <div id="wifiPage" class="container hidden">
-        <h1>Select WiFi Network</h1>
+      <h1>WiFi Setup</h1>
 
-        <select id="wifiSelect">
-            <option value="">-- Select WiFi --</option>
-            <option value="Home_WiFi">Home_WiFi</option>
-            <option value="ESP32_Network">ESP32_Network</option>
-            <option value="Campus_WiFi">Campus_WiFi</option>
-            <option value="Office_Network">Office_Network</option>
-        </select>
+      <input type="text" id="wifiName" placeholder="WiFi Name" />
+      <input type="password" id="wifiPassword" placeholder="WiFi Password" />
 
-        <input type="password" id="wifiPassword" placeholder="Enter WiFi Password">
+      <button onclick="connectWifi()">Connect WiFi</button>
 
-        <button onclick="connectWifi()">Connect WiFi</button>
-
-        <p id="wifiStatus">WiFi Status: Not Connected</p>
+      <p id="wifiStatus">WiFi Status: Not Connected</p>
     </div>
 
+    <!-- DASHBOARD -->
     <div id="dashboard" class="hidden">
+      <header>
+        <button onclick="toggleMenu()">☰ Menu</button>
+        <h2>ESP32 Smart Dashboard</h2>
+        <button onclick="logout()">Logout</button>
+      </header>
 
-        <header>
-            <button onclick="toggleMenu()">☰ Menu</button>
+      <div id="menu" class="menu hidden">
+        <p>Dashboard</p>
+        <p>WiFi Settings</p>
+        <p>Device Status</p>
+        <p>Timer Settings</p>
+      </div>
 
-            <h2>Smart House System</h2>
+      <!-- SYSTEM INFO -->
+      <div class="statusBox">
+        <h3>System Information</h3>
 
-            <button onclick="logout()">Logout</button>
-        </header>
+        <p id="systemStatus">System Status: Online ✅</p>
+        <p id="wifiText">WiFi Status: Connected ✅</p>
 
-        <div id="menu" class="menu hidden">
-            <p>Dashboard</p>
-            <p>WiFi Settings</p>
-            <p>Device Status</p>
-            <p>Timer Settings</p>
+        <p>
+          WiFi Name:
+          <span id="wifiDisplay">Not Connected</span>
+        </p>
+
+        <p>
+          IP Address:
+          <span id="ipAddress">192.168.1.25</span>
+        </p>
+
+        <!-- ✅ NEW USER DISPLAY -->
+        <p>
+          Logged in as:
+          <span id="loggedUser">None</span>
+        </p>
+      </div>
+
+      <!-- DEVICES -->
+      <div class="cards">
+        <div class="card">
+          <h3>Kitchen Light</h3>
+          <p>Status: <span id="light1Status">OFF</span></p>
+          <p>Time ON: <span id="light1Timer">00:00:00</span></p>
+          <button onclick="toggleDevice('light1')">ON / OFF</button>
         </div>
 
-        <div class="statusBox">
-            <h3>System Information</h3>
-
-            <p id="systemStatus">System Status: Online ✅</p>
-            <p id="wifiText">WiFi Status: Connected ✅</p>
-
-            <p>
-                Connected Network:
-                <span id="networkName">Home_WiFi</span>
-            </p>
-
-            <p>
-                IP Address:
-                <span id="ipAddress">192.168.1.25</span>
-            </p>
-
-            <p id="currentUser">Logged in as:</p>
+        <div class="card">
+          <h3>Living Room Light</h3>
+          <p>Status: <span id="light2Status">OFF</span></p>
+          <p>Time ON: <span id="light2Timer">00:00:00</span></p>
+          <button onclick="toggleDevice('light2')">ON / OFF</button>
         </div>
 
-        <div class="cards">
-
-            <div class="card">
-                <h3>Light 1</h3>
-
-                <p>
-                    Status:
-                    <span id="light1Status">OFF</span>
-                </p>
-
-                <p>
-                    Time ON:
-                    <span id="light1Timer">00:00:00</span>
-                </p>
-
-                <button onclick="toggleDevice('light1')">ON / OFF</button>
-            </div>
-
-            <div class="card">
-                <h3>Light 2</h3>
-
-                <p>
-                    Status:
-                    <span id="light2Status">OFF</span>
-                </p>
-
-                <p>
-                    Time ON:
-                    <span id="light2Timer">00:00:00</span>
-                </p>
-
-                <button onclick="toggleDevice('light2')">ON / OFF</button>
-            </div>
-
-            <div class="card">
-                <h3>Plug 1</h3>
-
-                <p>
-                    Status:
-                    <span id="plug1Status">OFF</span>
-                </p>
-
-                <p>
-                    Time ON:
-                    <span id="plug1Timer">00:00:00</span>
-                </p>
-
-                <button onclick="toggleDevice('plug1')">ON / OFF</button>
-            </div>
-
+        <div class="card">
+          <h3>Plugs</h3>
+          <p>Status: <span id="plug1Status">OFF</span></p>
+          <p>Time ON: <span id="plug1Timer">00:00:00</span></p>
+          <button onclick="toggleDevice('plug1')">ON / OFF</button>
         </div>
+      </div>
 
-        <div class="mainSwitch">
-            <h3>Main Switch Test</h3>
+      <!-- MASTER SWITCH -->
+      <div class="mainSwitch">
+        <h3>Master Switch Panel</h3>
 
-            <button onclick="turnAllOn()">Turn All ON</button>
-            <button onclick="turnAllOff()">Turn All OFF</button>
-        </div>
-
+        <button onclick="turnAllOn()">Turn All ON</button>
+        <button onclick="turnAllOff()">Turn All OFF</button>
+      </div>
     </div>
 
     <script>
-        const esp32IP = "http://172.20.10.2"; //Replace with the correct IP
-        let users = [
-            {
-                username: "mahle",
-                password: "1234"
-            },
-            {
-                username: "yaya",
-                password: "1234"
-            },
-            {
-                username: "nka",
-                password: "1234"
-            },
-            {
-                username: "bontle",
-                password: "1234"
-            },
-            {
-                username: "lungelo",
-                password: "1234"
-            }
-        ];
+      let currentUser = ""; // ✅ NEW
 
-        let loggedInUser = "";
+      let devices = {
+        light1: { status: false, seconds: 0 },
+        light2: { status: false, seconds: 0 },
+        plug1: { status: false, seconds: 0 },
+      };
 
-        let mainSwitchOn = true;
+      // LOGIN
+      function login() {
+        let username = document.getElementById("username").value.toLowerCase();
+        let password = document.getElementById("password").value;
 
-        let devices = {
-            light1: {
-                status: false,
-                seconds: 0
-            },
-            light2: {
-                status: false,
-                seconds: 0
-            },
-            plug1: {
-                status: false,
-                seconds: 0
-            }
-        };
+        let validUsers = ["ayanda", "mahle", "lungelo", "nka", "bontle"];
 
-        function login() {
-            let username = document.getElementById("username").value.toLowerCase();
-            let password = document.getElementById("password").value;
+        if (validUsers.includes(username) && password === "1234") {
+          currentUser = username; // ✅ STORE USER
 
-            let validUser = false;
+          document.getElementById("loginPage").classList.add("hidden");
+          document.getElementById("wifiPage").classList.remove("hidden");
 
-            for (let i = 0; i < users.length; i++) {
-                if (
-                    username === users[i].username &&
-                    password === users[i].password
-                ) {
-                    validUser = true;
-                    loggedInUser = username;
-                    break;
-                }
-            }
-
-            if (validUser) {
-                alert("Login Successful ✅");
-
-                document.getElementById("loginPage").classList.add("hidden");
-                document.getElementById("wifiPage").classList.remove("hidden");
-            } else {
-                alert("Incorrect username or password ❌");
-            }
+          document.getElementById("loggedUser").innerHTML = currentUser; // ✅ SHOW USER
+        } else {
+          alert("Incorrect username or password");
         }
+      }
 
-        function forgotPassword() {
-            alert("Contact system administrator to reset password.");
+      // FORGOT PASSWORD
+      function forgotPassword() {
+        alert("Please contact the service provider for password assistance.");
+      }
+
+      // WIFI
+      function connectWifi() {
+        let wifiName = document.getElementById("wifiName").value;
+        let wifiPassword = document.getElementById("wifiPassword").value;
+
+        if (wifiName !== "" && wifiPassword !== "") {
+          document.getElementById("wifiStatus").innerHTML =
+            "WiFi Status: Connected Successfully ✅";
+
+          document.getElementById("wifiDisplay").innerHTML = wifiName;
+
+          setTimeout(function () {
+            document.getElementById("wifiPage").classList.add("hidden");
+            document.getElementById("dashboard").classList.remove("hidden");
+          }, 1000);
+        } else {
+          alert("Please enter WiFi name and password");
         }
+      }
 
-        function connectWifi() {
-            let selectedWifi = document.getElementById("wifiSelect").value;
-            let wifiPassword = document.getElementById("wifiPassword").value;
+      // MENU
+      function toggleMenu() {
+        document.getElementById("menu").classList.toggle("hidden");
+      }
 
-            if (selectedWifi !== "" && wifiPassword !== "") {
-                document.getElementById("wifiStatus").innerHTML =
-                    "WiFi Status: Connected Successfully ✅";
+      // LOGOUT
+      function logout() {
+        document.getElementById("dashboard").classList.add("hidden");
+        document.getElementById("loginPage").classList.remove("hidden");
+      }
 
-                setTimeout(function () {
-                    document.getElementById("wifiPage").classList.add("hidden");
-                    document.getElementById("dashboard").classList.remove("hidden");
+      // DEVICES
+      function toggleDevice(deviceName) {
+        devices[deviceName].status = !devices[deviceName].status;
+        updateDisplay();
+      }
 
-                    document.getElementById("currentUser").innerHTML =
-                        "Logged in as: " + loggedInUser;
+      function turnAllOn() {
+        devices.light1.status = true;
+        devices.light2.status = true;
+        devices.plug1.status = true;
+        updateDisplay();
+      }
 
-                    document.getElementById("networkName").innerHTML =
-                        selectedWifi;
+      function turnAllOff() {
+        devices.light1.status = false;
+        devices.light2.status = false;
+        devices.plug1.status = false;
+        updateDisplay();
+      }
 
-                }, 1000);
-            } else {
-                alert("Please select WiFi and enter password");
-            }
-        }
+      function updateDisplay() {
+        document.getElementById("light1Status").innerHTML = devices.light1
+          .status
+          ? "ON"
+          : "OFF";
 
-        function toggleMenu() {
-            document.getElementById("menu").classList.toggle("hidden");
-        }
+        document.getElementById("light2Status").innerHTML = devices.light2
+          .status
+          ? "ON"
+          : "OFF";
 
-        function logout() {
-            document.getElementById("dashboard").classList.add("hidden");
-            document.getElementById("loginPage").classList.remove("hidden");
+        document.getElementById("plug1Status").innerHTML = devices.plug1.status
+          ? "ON"
+          : "OFF";
+      }
 
-            document.getElementById("username").value = "";
-            document.getElementById("password").value = "";
-        }
+      // TIMER
+      function formatTime(seconds) {
+        let hrs = Math.floor(seconds / 3600);
+        let mins = Math.floor((seconds % 3600) / 60);
+        let secs = seconds % 60;
 
-        function toggleDevice(deviceName) {
-            if (mainSwitchOn === false) {
-                alert("Main switch is OFF. Turn All ON first before switching lights or plug on.");
-                return;
-            }
+        return (
+          String(hrs).padStart(2, "0") +
+          ":" +
+          String(mins).padStart(2, "0") +
+          ":" +
+          String(secs).padStart(2, "0")
+        );
+      }
 
-            devices[deviceName].status = !devices[deviceName].status;
+      setInterval(function () {
+        if (devices.light1.status) devices.light1.seconds++;
+        if (devices.light2.status) devices.light2.seconds++;
+        if (devices.plug1.status) devices.plug1.seconds++;
 
-            updateDisplay();
+        document.getElementById("light1Timer").innerHTML = formatTime(
+          devices.light1.seconds,
+        );
 
-            // ESP32 CODE GOES HERE LATER
-            let state = devices[deviceName].status ? "on" : "off";
+        document.getElementById("light2Timer").innerHTML = formatTime(
+          devices.light2.seconds,
+        );
 
-             fetch(`${esp32IP}/${deviceName}/${state}`)
-                .then(response => response.text())
-                .then(data => console.log(data))
-                .catch(error => alert("ESP32 not connected"));
-        }
-
-        function turnAllOn() {
-            mainSwitchOn = true;
-
-            devices.light1.status = true;
-            devices.light2.status = true;
-            devices.plug1.status = true;
-
-            updateDisplay();
-
-            // ESP32 CODE GOES HERE LATER
-            fetch(`${esp32IP}/all/on`)
-                .then(response => response.text())
-                .then(data => console.log(data))
-                .catch(error => alert("ESP32 not connected"));
-        }
-
-        function turnAllOff() {
-            mainSwitchOn = false;
-
-            devices.light1.status = false;
-            devices.light2.status = false;
-            devices.plug1.status = false;
-
-            updateDisplay();
-
-            // ESP32 CODE GOES HERE LATER
-            fetch(`${esp32IP}/all/off`)
-                .then(response => response.text())
-                .then(data => console.log(data))
-                .catch(error => alert("ESP32 not connected"));
-        }
-
-        function updateDisplay() {
-            document.getElementById("light1Status").innerHTML =
-                devices.light1.status ? "ON" : "OFF";
-
-            document.getElementById("light2Status").innerHTML =
-                devices.light2.status ? "ON" : "OFF";
-
-            document.getElementById("plug1Status").innerHTML =
-                devices.plug1.status ? "ON" : "OFF";
-        }
-
-        function formatTime(seconds) {
-            let hrs = Math.floor(seconds / 3600);
-            let mins = Math.floor((seconds % 3600) / 60);
-            let secs = seconds % 60;
-
-            return (
-                String(hrs).padStart(2, "0") +
-                ":" +
-                String(mins).padStart(2, "0") +
-                ":" +
-                String(secs).padStart(2, "0")
-            );
-        }
-
-        setInterval(function () {
-            if (devices.light1.status) {
-                devices.light1.seconds++;
-            }
-
-            if (devices.light2.status) {
-                devices.light2.seconds++;
-            }
-
-            if (devices.plug1.status) {
-                devices.plug1.seconds++;
-            }
-
-            document.getElementById("light1Timer").innerHTML =
-                formatTime(devices.light1.seconds);
-
-            document.getElementById("light2Timer").innerHTML =
-                formatTime(devices.light2.seconds);
-
-            document.getElementById("plug1Timer").innerHTML =
-                formatTime(devices.plug1.seconds);
-
-        }, 1000);
+        document.getElementById("plug1Timer").innerHTML = formatTime(
+          devices.plug1.seconds,
+        );
+      }, 1000);
     </script>
-
-</body>
-
+  </body>
 </html>
