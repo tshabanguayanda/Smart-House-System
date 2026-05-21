@@ -9,47 +9,39 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #eef2f7;
-      --mid: #ffffff;
+    --bg: #f0f4ff;
+    --mid: #ffffff;
 
-      --card: rgba(255,255,255,0.82);
-      --card-on: rgba(49,130,206,0.12);
+    --card: rgba(255,255,255,0.65);
+    --card-on: rgba(37,99,235,0.08);
 
-      --border: rgba(0,0,0,0.08);
-      --border-on: rgba(49,130,206,0.35);
+    --border: rgba(100,130,200,0.18);
+    --border-on: rgba(37,99,235,0.35);
 
-      --teal: #3182ce;
-      --teal-dim: #2563eb;
+    --teal: #2563eb;
+    --teal-dim: #1d4ed8;
 
-      --green: #16a34a;
-      --amber: #ea580c;
-      --purple: #7c3aed;
+    --green: #34c17a;
+    --amber: #f59e0b;
+    --purple: #7c3aed;
 
-      --text: #111827;
-      --muted: #4b5563;
+    --text: #1a2a50;
+    --muted: #7a8fb5;
 
-      --input-bg: rgba(255,255,255,0.9);
+    --input-bg: rgba(255,255,255,0.85);
 
-      --radius: 14px;
-      --radius-sm: 9px;
+    --radius: 14px;
+    --radius-sm: 10px;
 
-      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --shadow: 0 4px 24px rgba(80,110,170,0.14);
 }
 
 body {
-
-  font-family: 'Segoe UI', Arial, sans-serif;
-
-  background:
-    radial-gradient(circle at top left, rgba(49,130,206,0.12), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(56,189,248,0.10), transparent 30%),
-    linear-gradient(135deg, #eef2f7 0%, #f8fafc 100%);
-
-  color: var(--text);
-
-  min-height: 100vh;
-
-  overflow-x: hidden;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f4ff;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
 }
     .hidden { display: none !important; }
 
@@ -78,14 +70,14 @@ body {
     }
 
     .auth-card {
-      width: 100%;
-      max-width: 400px;
-      background: rgba(13,21,38,0.85);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 40px 36px 32px;
-      backdrop-filter: blur(18px);
-      box-shadow: var(--shadow);
+        width: 100%;
+        max-width: 400px;
+        background: rgba(255,255,255,0.75);
+        border: 1px solid rgba(100,130,200,0.18);
+        border-radius: var(--radius);
+        padding: 40px 36px 32px;
+        backdrop-filter: blur(14px);
+        box-shadow: var(--shadow);
     }
 
     .auth-logo {
@@ -106,7 +98,7 @@ body {
     .auth-logo h1 {
       font-size: 22px;
       font-weight: 700;
-      color: #fff;
+      color: var(--text);
       letter-spacing: 0.3px;
     }
     .auth-logo p {
@@ -200,9 +192,9 @@ body {
 
     /* Top bar */
     .topbar {
-      background: rgba(13,21,38,0.90);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.70);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(100,130,200,0.15);
       padding: 14px 22px;
       display: flex;
       align-items: center;
@@ -210,7 +202,7 @@ body {
       position: sticky;
       top: 0;
       z-index: 10;
-    }
+  }
 
     .topbar-brand {
       display: flex;
@@ -225,7 +217,7 @@ body {
       display: flex; align-items: center; justify-content: center;
       font-size: 18px;
     }
-    .brand-name { font-size: 16px; font-weight: 700; color: #fff; }
+    .brand-name { font-size: 16px; font-weight: 700; color: var(--text); }
     .brand-sub  { font-size: 11px; color: var(--muted); margin-top: 1px; }
 
     .topbar-right { display: flex; align-items: center; gap: 10px; }
@@ -261,9 +253,9 @@ body {
 
     /* Slide-down menu */
     .menu-panel {
-      background: rgba(13,21,38,0.96);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(16px);
+      background: rgba(255,255,255,0.86);
+      border-bottom: 1px solid rgba(100,130,200,0.15);
+      backdrop-filter: blur(14px);
       overflow: hidden;
       max-height: 0;
       transition: max-height 0.28s ease;
@@ -393,7 +385,7 @@ body {
     }
     .toggle.on::after { left: 21px; }
 
-    .card-name  { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+    .card-name  { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
     .card-room  { font-size: 11px; color: var(--muted); }
 
     .status-badge {
