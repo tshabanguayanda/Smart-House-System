@@ -493,11 +493,27 @@
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 12px;
     }
-    .info-item { }
-    .info-item .info-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-bottom: 3px; }
-    .info-item .info-value { font-size: 13px; font-weight: 600; color: var(--text); }
-    .info-item .info-value.online { color: var(--green); }
+   .info-item {
+  padding: 8px 0;
+}
 
+.info-item .info-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+
+.info-item .info-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.info-item .info-value.online {
+  color: var(--green);
+}
     /* ── Scrollbar ───────────────────────────────────────── */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -634,7 +650,7 @@
             </div>
           </div>
           <div class="card-name">Kitchen Light</div>
-          <div class="card-room">Relay Module · GPIO 23</div>
+          <div class="card-room">Relay Module · GPIO 23 · IN1</div>
           <div class="status-badge" id="status-light1">OFF</div>
           <div class="timer" id="light1Timer">⏱ 00:00:00</div>
           <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('light1')">Toggle ON / OFF</button>
@@ -649,7 +665,7 @@
             </div>
           </div>
           <div class="card-name">Living Room Light</div>
-          <div class="card-room">LED · GPIO 22</div>
+          <div class="card-room">Relay Module · GPIO 22 · IN2</div>
           <div class="status-badge" id="status-light2">OFF</div>
           <div class="timer" id="light2Timer">⏱ 00:00:00</div>
           <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('light2')">Toggle ON / OFF</button>
@@ -664,7 +680,7 @@
             </div>
           </div>
           <div class="card-name">Plugs</div>
-          <div class="card-room">LED · GPIO 21</div>
+          <div class="card-room">Relay Module · GPIO 21 · IN3</div>
           <div class="status-badge" id="status-plug1">OFF</div>
           <div class="timer" id="plug1Timer">⏱ 00:00:00</div>
           <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('plug1')">Toggle ON / OFF</button>
