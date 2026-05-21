@@ -328,8 +328,31 @@ body {
     }
     .device-card:hover { transform: translateY(-2px); }
     .device-card.on {
-      background: var(--card-on);
-      border-color: var(--border-on);
+      background: rgba(37, 99, 235, 0.18);
+      border: 2px solid #2563eb;
+      box-shadow: 0 0 18px rgba(37, 99, 235, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .device-card.on .status-badge {
+      background: #16a34a;
+      color: white;
+    }
+
+    .device-card.on .card-btn {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+    }
+
+    .toggle.on {
+      background: #16a34a;
+    }
+
+    .card-btn:active,
+    .btn-all-on:active,
+    .btn-all-off:active {
+      transform: scale(0.96);
     }
     /* Glow top strip */
     .device-card::before {
