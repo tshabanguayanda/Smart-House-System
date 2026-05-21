@@ -693,6 +693,10 @@
       <div class="system-info">
         <div class="info-grid">
           <div class="info-item">
+            <div class="info-label">Active Users</div>
+            <div class="info-value" id="activeUsersDisplay">0 / 5</div>
+          </div>
+          <div class="info-item">
             <div class="info-label">System Status</div>
             <div class="info-value online">Online ✅</div>
           </div>
@@ -730,18 +734,18 @@
       let W, H, pts = [];
 
       function resize() {
-        W = c.width  = window.innerWidth;
+        W = c.width = window.innerWidth;
         H = c.height = window.innerHeight;
       }
 
       function makePt() {
         return {
-          x:  Math.random() * W,
-          y:  Math.random() * H,
-          r:  Math.random() * 1.7 + 0.4,
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: Math.random() * 1.7 + 0.4,
           vx: (Math.random() - 0.5) * 0.24,
           vy: (Math.random() - 0.5) * 0.24,
-          a:  Math.random(),
+          a: Math.random(),
           da: (Math.random() * 0.005 + 0.002) * (Math.random() < 0.5 ? 1 : -1),
           hue: Math.random() < 0.5 ? 210 : 165,
         };
@@ -758,7 +762,6 @@
         ctx.clearRect(0, 0, W, H);
         t += 0.003;
 
-        // Moving glowing orbs
         orbs.forEach(function (o, i) {
           const px = (o.x + Math.sin(t + i) * 0.09) * W;
           const py = (o.y + Math.cos(t * 0.75 + i) * 0.08) * H;
@@ -771,9 +774,9 @@
           ctx.fill();
         });
 
-        // Floating particles
         pts.forEach(function (p) {
-          p.x += p.vx; p.y += p.vy;
+          p.x += p.vx;
+          p.y += p.vy;
           p.a += p.da;
           if (p.a > 1 || p.a < 0) p.da *= -1;
           if (p.x < 0 || p.x > W) p.vx *= -1;
@@ -784,12 +787,11 @@
           ctx.fill();
         });
 
-        // Connecting lines between nearby particles
         for (let i = 0; i < pts.length; i++) {
           for (let j = i + 1; j < pts.length; j++) {
             const dx = pts[i].x - pts[j].x;
             const dy = pts[i].y - pts[j].y;
-            const d  = Math.sqrt(dx * dx + dy * dy);
+            const d = Math.sqrt(dx * dx + dy * dy);
             if (d < 82) {
               ctx.beginPath();
               ctx.moveTo(pts[i].x, pts[i].y);
@@ -811,13 +813,13 @@
     })();
 
     // ── App State ──────────────────────────────────────────────
-    const esp32IP = "http://192.168.43.119"; // ← Replace with your ESP32 IP
+    const esp32IP = "http://192.168.43.119"; // Change only if ESP32 IP changes
 
     const users = [
-      { username: "mahle",   password: "1234" },
-      { username: "yaya",    password: "1234" },
-      { username: "nka",     password: "1234" },
-      { username: "bontle",  password: "1234" },
+      { username: "mahle", password: "1234" },
+      { username: "yaya", password: "1234" },
+      { username: "nka", password: "1234" },
+      { username: "bontle", password: "1234" },
       { username: "lungelo", password: "1234" },
     ];
 
@@ -827,7 +829,7 @@
     const devices = {
       light1: { status: false, seconds: 0 },
       light2: { status: false, seconds: 0 },
-      plug1:  { status: false, seconds: 0 },
+      plug1: { status: false, seconds: 0 },
     };
 
     // ── LOGIN ──────────────────────────────────────────────────
@@ -836,6 +838,7 @@
       const password = document.getElementById("password").value;
 
       let valid = false;
+
       for (let i = 0; i < users.length; i++) {
         if (users[i].username === username && users[i].password === password) {
           valid = true;
@@ -844,12 +847,22 @@
         }
       }
 
-      if (valid) {
-        document.getElementById("loginPage").classList.add("hidden");
-        document.getElementById("wifiPage").classList.remove("hidden");
-      } else {
-        alert("❌ Incorrect username or password.\n\nHint: usernames are lowercase (e.g. mahle)");
+      if (!valid) {
+        alert("❌ Incorrect username or password.");
+        return;
       }
+
+      fetch(esp32IP + "/user/login")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          updateFromESP32Status(data);
+        })
+        .catch(function () {
+          console.warn("Could not register active user on ESP32.");
+        });
+
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("wifiPage").classList.remove("hidden");
     }
 
     function forgotPassword() {
@@ -858,7 +871,7 @@
 
     // ── WIFI ───────────────────────────────────────────────────
     function connectWifi() {
-      const wifiName     = document.getElementById("wifiName").value.trim();
+      const wifiName = document.getElementById("wifiName").value.trim();
       const wifiPassword = document.getElementById("wifiPassword").value;
 
       if (!wifiName || !wifiPassword) {
@@ -869,15 +882,15 @@
       const statusEl = document.getElementById("wifiStatus");
       statusEl.classList.add("visible");
 
-      // Update displays
       document.getElementById("networkDisplay").textContent = wifiName;
       document.getElementById("sysWifiDisplay").textContent = wifiName;
-      document.getElementById("loggedUser").textContent     = currentUser;
-      document.getElementById("sysUser").textContent        = currentUser;
+      document.getElementById("loggedUser").textContent = currentUser;
+      document.getElementById("sysUser").textContent = currentUser;
 
       setTimeout(function () {
         document.getElementById("wifiPage").classList.add("hidden");
         document.getElementById("dashboard").classList.remove("hidden");
+        getESP32Status();
       }, 1200);
     }
 
@@ -888,53 +901,66 @@
 
     // ── LOGOUT ─────────────────────────────────────────────────
     function logout() {
+      fetch(esp32IP + "/user/logout")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          updateFromESP32Status(data);
+        })
+        .catch(function () {
+          console.warn("Could not logout from ESP32.");
+        });
+
       document.getElementById("dashboard").classList.add("hidden");
       document.getElementById("loginPage").classList.remove("hidden");
-      document.getElementById("username").value  = "";
-      document.getElementById("password").value  = "";
+      document.getElementById("username").value = "";
+      document.getElementById("password").value = "";
       document.getElementById("menuPanel").classList.remove("open");
     }
 
-    // ── DEVICE TOGGLE ──────────────────────────────────────────
+    // ── DEVICE CONTROL ─────────────────────────────────────────
     function toggleDevice(name) {
       if (!mainSwitchOn) {
         alert("⚠ Master switch is OFF.\nUse 'Turn All ON' first.");
         return;
       }
-      devices[name].status = !devices[name].status;
-      updateDisplay();
 
-      const state = devices[name].status ? "on" : "off";
-      fetch(esp32IP + "/" + name + "/" + state)
+      const newState = !devices[name].status;
+      const stateText = newState ? "on" : "off";
+
+      fetch(esp32IP + "/" + name + "/" + stateText)
         .then(function (r) { return r.text(); })
-        .then(function (d) { console.log(d); })
-        .catch(function ()  { console.warn("ESP32 not reachable — UI updated anyway."); });
+        .then(function () {
+          getESP32Status();
+        })
+        .catch(function () {
+          alert("ESP32 not reachable. Check Wi-Fi, IP address, and ESP32 power.");
+        });
     }
 
     function turnAllOn() {
       mainSwitchOn = true;
-      devices.light1.status = true;
-      devices.light2.status = true;
-      devices.plug1.status  = true;
-      updateDisplay();
 
       fetch(esp32IP + "/all/on")
         .then(function (r) { return r.text(); })
-        .then(function (d) { console.log(d); })
-        .catch(function ()  { console.warn("ESP32 not reachable — UI updated anyway."); });
+        .then(function () {
+          getESP32Status();
+        })
+        .catch(function () {
+          alert("ESP32 not reachable. Check Wi-Fi, IP address, and ESP32 power.");
+        });
     }
 
     function turnAllOff() {
       mainSwitchOn = false;
-      devices.light1.status = false;
-      devices.light2.status = false;
-      devices.plug1.status  = false;
-      updateDisplay();
 
       fetch(esp32IP + "/all/off")
         .then(function (r) { return r.text(); })
-        .then(function (d) { console.log(d); })
-        .catch(function ()  { console.warn("ESP32 not reachable — UI updated anyway."); });
+        .then(function () {
+          getESP32Status();
+        })
+        .catch(function () {
+          alert("ESP32 not reachable. Check Wi-Fi, IP address, and ESP32 power.");
+        });
     }
 
     // ── DISPLAY REFRESH ────────────────────────────────────────
@@ -943,10 +969,10 @@
       let activeCount = 0;
 
       devList.forEach(function (name) {
-        const on   = devices[name].status;
-        const card = document.getElementById("card-"   + name);
-        const tog  = document.getElementById("toggle-" + name);
-        const badge= document.getElementById("status-" + name);
+        const on = devices[name].status;
+        const card = document.getElementById("card-" + name);
+        const tog = document.getElementById("toggle-" + name);
+        const badge = document.getElementById("status-" + name);
 
         if (on) {
           card.classList.add("on");
@@ -960,15 +986,42 @@
         }
       });
 
-      document.getElementById("activeCount").textContent   = activeCount;
-      document.getElementById("sysDeviceCount").textContent= activeCount + " / 3";
+      document.getElementById("activeCount").textContent = activeCount;
+      document.getElementById("sysDeviceCount").textContent = activeCount + " / 3";
+    }
+
+    function updateFromESP32Status(data) {
+      devices.light1.status = Boolean(data.light1);
+      devices.light2.status = Boolean(data.light2);
+      devices.plug1.status = Boolean(data.plug1);
+
+      mainSwitchOn = data.light1 || data.light2 || data.plug1;
+
+      updateDisplay();
+
+      if (data.activeUsers !== undefined && data.maxUsers !== undefined) {
+        document.getElementById("activeUsersDisplay").textContent =
+          data.activeUsers + " / " + data.maxUsers;
+      }
+    }
+
+    function getESP32Status() {
+      fetch(esp32IP + "/status")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          updateFromESP32Status(data);
+        })
+        .catch(function () {
+          console.warn("Could not fetch ESP32 status.");
+        });
     }
 
     // ── TIMERS ─────────────────────────────────────────────────
     function formatTime(s) {
-      const h   = Math.floor(s / 3600);
-      const m   = Math.floor((s % 3600) / 60);
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
       const sec = s % 60;
+
       return (
         String(h).padStart(2, "0") + ":" +
         String(m).padStart(2, "0") + ":" +
@@ -979,12 +1032,22 @@
     setInterval(function () {
       if (devices.light1.status) devices.light1.seconds++;
       if (devices.light2.status) devices.light2.seconds++;
-      if (devices.plug1.status)  devices.plug1.seconds++;
+      if (devices.plug1.status) devices.plug1.seconds++;
 
-      document.getElementById("light1Timer").textContent = "⏱ " + formatTime(devices.light1.seconds);
-      document.getElementById("light2Timer").textContent = "⏱ " + formatTime(devices.light2.seconds);
-      document.getElementById("plug1Timer").textContent  = "⏱ " + formatTime(devices.plug1.seconds);
+      document.getElementById("light1Timer").textContent =
+        "⏱ " + formatTime(devices.light1.seconds);
+
+      document.getElementById("light2Timer").textContent =
+        "⏱ " + formatTime(devices.light2.seconds);
+
+      document.getElementById("plug1Timer").textContent =
+        "⏱ " + formatTime(devices.plug1.seconds);
     }, 1000);
+
+    // Every user checks the actual ESP32 status every 2 seconds
+    setInterval(function () {
+      getESP32Status();
+    }, 2000);
   </script>
 </body>
 </html>
