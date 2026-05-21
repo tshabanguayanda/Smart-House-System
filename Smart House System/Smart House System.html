@@ -680,7 +680,7 @@
           <div class="card-room">Relay Module · GPIO 23 · IN1</div>
           <div class="status-badge" id="status-light1">OFF</div>
           <div class="timer" id="light1Timer">⏱ 00:00:00</div>
-          <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('light1')">Toggle ON / OFF</button>
+          <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('light1')">Turn ON / OFF</button>
         </div>
 
         <!-- Living Room Light -->
@@ -695,7 +695,7 @@
           <div class="card-room">Relay Module · GPIO 22 · IN2</div>
           <div class="status-badge" id="status-light2">OFF</div>
           <div class="timer" id="light2Timer">⏱ 00:00:00</div>
-          <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('light2')">Toggle ON / OFF</button>
+          <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('light2')">Turn ON / OFF</button>
         </div>
 
         <!-- Plugs -->
@@ -710,7 +710,7 @@
           <div class="card-room">Relay Module · GPIO 21 · IN3</div>
           <div class="status-badge" id="status-plug1">OFF</div>
           <div class="timer" id="plug1Timer">⏱ 00:00:00</div>
-          <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('plug1')">Toggle ON / OFF</button>
+          <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('plug1')">Turn ON / OFF</button>
         </div>
 
       </div>
@@ -946,49 +946,28 @@
 
     // ── DEVICE CONTROL ─────────────────────────────────────────
     function toggleDevice(name) {
-      if (!mainSwitchOn) {
-        alert("⚠ Master switch is OFF.\nUse 'Turn All ON' first.");
-        return;
-      }
 
       const newState = !devices[name].status;
+
       const stateText = newState ? "on" : "off";
 
       fetch(esp32IP + "/" + name + "/" + stateText)
         .then(function (r) { return r.text(); })
         .then(function () {
+
+          devices[name].status = newState;
+
+          updateDisplay();
+
           getESP32Status();
+
         })
         .catch(function () {
-          alert("ESP32 not reachable. Check Wi-Fi, IP address, and ESP32 power.");
+
+          alert("ESP32 not reachable.");
+
         });
-    }
-
-    function turnAllOn() {
-      mainSwitchOn = true;
-
-      fetch(esp32IP + "/all/on")
-        .then(function (r) { return r.text(); })
-        .then(function () {
-          getESP32Status();
-        })
-        .catch(function () {
-          alert("ESP32 not reachable. Check Wi-Fi, IP address, and ESP32 power.");
-        });
-    }
-
-    function turnAllOff() {
-      mainSwitchOn = false;
-
-      fetch(esp32IP + "/all/off")
-        .then(function (r) { return r.text(); })
-        .then(function () {
-          getESP32Status();
-        })
-        .catch(function () {
-          alert("ESP32 not reachable. Check Wi-Fi, IP address, and ESP32 power.");
-        });
-    }
+}
 
     // ── DISPLAY REFRESH ────────────────────────────────────────
     function updateDisplay() {
