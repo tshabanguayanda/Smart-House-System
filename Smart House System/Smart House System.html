@@ -1,1105 +1,1339 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart House — ESP32 Control</title>
-  <style>
-    /* ── Reset & Base ───────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart House — ESP32 Control</title>
+    <style>
+      /* ── Reset & Base ───────────────────────────────────── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-    :root {
-    --bg: #f0f4ff;
-    --mid: #ffffff;
+      :root {
+        --bg: #f0f4ff;
+        --mid: #ffffff;
 
-    --card: rgba(255,255,255,0.65);
-    --card-on: rgba(37,99,235,0.08);
+        --card: rgba(255, 255, 255, 0.65);
+        --card-on: rgba(37, 99, 235, 0.08);
 
-    --border: rgba(100,130,200,0.18);
-    --border-on: rgba(37,99,235,0.35);
+        --border: rgba(100, 130, 200, 0.18);
+        --border-on: rgba(37, 99, 235, 0.35);
 
-    --teal: #2563eb;
-    --teal-dim: #1d4ed8;
+        --teal: #2563eb;
+        --teal-dim: #1d4ed8;
 
-    --green: #34c17a;
-    --amber: #f59e0b;
-    --purple: #7c3aed;
+        --green: #34c17a;
+        --amber: #f59e0b;
+        --purple: #7c3aed;
 
-    --text: #1a2a50;
-    --muted: #7a8fb5;
+        --text: #1a2a50;
+        --muted: #7a8fb5;
 
-    --input-bg: rgba(255,255,255,0.85);
+        --input-bg: rgba(255, 255, 255, 0.85);
 
-    --radius: 14px;
-    --radius-sm: 10px;
+        --radius: 14px;
+        --radius-sm: 10px;
 
-    --shadow: 0 4px 24px rgba(80,110,170,0.14);
-}
+        --shadow: 0 4px 24px rgba(80, 110, 170, 0.14);
+      }
 
-body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #f0f4ff;
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-}
-    .hidden { display: none !important; }
+      body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f0f4ff;
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      .hidden {
+        display: none !important;
+      }
 
-    /* ── Canvas ─────────────────────────────────────────── */
-    #aurora-canvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
+      /* ── Canvas ─────────────────────────────────────────── */
+      #aurora-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
 
-    /* ── Page wrapper (sits above canvas) ───────────────── */
-    .page { position: relative; z-index: 1; }
+      /* ── Page wrapper (sits above canvas) ───────────────── */
+      .page {
+        position: relative;
+        z-index: 1;
+      }
 
-    /* ══════════════════════════════════════════════════════
+      /* ══════════════════════════════════════════════════════
        LOGIN PAGE
     ══════════════════════════════════════════════════════ */
-    #loginPage {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 24px;
-    }
+      #loginPage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 24px;
+      }
 
-    .auth-card {
+      .auth-card {
         width: 100%;
         max-width: 400px;
-        background: rgba(255,255,255,0.75);
-        border: 1px solid rgba(100,130,200,0.18);
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(100, 130, 200, 0.18);
         border-radius: var(--radius);
         padding: 40px 36px 32px;
         backdrop-filter: blur(14px);
         box-shadow: var(--shadow);
-    }
+      }
 
-    .auth-logo {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-    .auth-logo .icon-wrap {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 58px; height: 58px;
-      border-radius: 16px;
-      background: rgba(99,179,237,0.15);
-      border: 1px solid rgba(99,179,237,0.35);
-      font-size: 28px;
-      margin-bottom: 12px;
-    }
-    .auth-logo h1 {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: 0.3px;
-    }
-    .auth-logo p {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
+      .auth-logo {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+      .auth-logo .icon-wrap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+        background: rgba(99, 179, 237, 0.15);
+        border: 1px solid rgba(99, 179, 237, 0.35);
+        font-size: 28px;
+        margin-bottom: 12px;
+      }
+      .auth-logo h1 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: 0.3px;
+      }
+      .auth-logo p {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
 
-    .field-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 6px;
-      display: block;
-    }
+      .field-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 6px;
+        display: block;
+      }
 
-    .auth-input {
-      width: 100%;
-      padding: 12px 14px;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text);
-      font-size: 14px;
-      margin-bottom: 16px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .auth-input:focus { border-color: var(--teal); }
-    .auth-input::placeholder { color: var(--muted); }
+      .auth-input {
+        width: 100%;
+        padding: 12px 14px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font-size: 14px;
+        margin-bottom: 16px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .auth-input:focus {
+        border-color: var(--teal);
+      }
+      .auth-input::placeholder {
+        color: var(--muted);
+      }
 
-    .btn-primary {
-      width: 100%;
-      padding: 13px;
-      background: var(--teal);
-      color: #0a1929;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-      letter-spacing: 0.3px;
-    }
-    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
-    .btn-primary:active { transform: translateY(0); }
+      .btn-primary {
+        width: 100%;
+        padding: 13px;
+        background: var(--teal);
+        color: #0a1929;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          opacity 0.15s,
+          transform 0.1s;
+        letter-spacing: 0.3px;
+      }
+      .btn-primary:hover {
+        opacity: 0.88;
+        transform: translateY(-1px);
+      }
+      .btn-primary:active {
+        transform: translateY(0);
+      }
 
-    .btn-link {
-      background: none;
-      border: none;
-      color: var(--teal);
-      font-size: 13px;
-      cursor: pointer;
-      margin-top: 14px;
-      display: block;
-      text-align: center;
-      opacity: 0.8;
-      transition: opacity 0.15s;
-    }
-    .btn-link:hover { opacity: 1; }
+      .btn-link {
+        background: none;
+        border: none;
+        color: var(--teal);
+        font-size: 13px;
+        cursor: pointer;
+        margin-top: 14px;
+        display: block;
+        text-align: center;
+        opacity: 0.8;
+        transition: opacity 0.15s;
+      }
+      .btn-link:hover {
+        opacity: 1;
+      }
 
-    /* ══════════════════════════════════════════════════════
+      /* ══════════════════════════════════════════════════════
        WIFI PAGE
     ══════════════════════════════════════════════════════ */
-    #wifiPage {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 24px;
-    }
+      #wifiPage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 24px;
+      }
 
-    .wifi-status {
-      margin-top: 14px;
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      background: rgba(104,211,145,0.12);
-      border: 1px solid rgba(104,211,145,0.3);
-      color: var(--green);
-      display: none;
-    }
-    .wifi-status.visible { display: block; }
+      .wifi-status {
+        margin-top: 14px;
+        padding: 10px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        background: rgba(104, 211, 145, 0.12);
+        border: 1px solid rgba(104, 211, 145, 0.3);
+        color: var(--green);
+        display: none;
+      }
+      .wifi-status.visible {
+        display: block;
+      }
 
-    /* ══════════════════════════════════════════════════════
+      /* ══════════════════════════════════════════════════════
        DASHBOARD
     ══════════════════════════════════════════════════════ */
-    #dashboard { min-height: 100vh; }
+      #dashboard {
+        min-height: 100vh;
+      }
 
-    /* Top bar */
-    .topbar {
-      background: rgba(255,255,255,0.70);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(100,130,200,0.15);
-      padding: 14px 22px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-  }
+      /* Top bar */
+      .topbar {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(100, 130, 200, 0.15);
+        padding: 14px 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
 
-    .topbar-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .brand-icon {
-      width: 36px; height: 36px;
-      border-radius: 10px;
-      background: rgba(99,179,237,0.15);
-      border: 1px solid rgba(99,179,237,0.35);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-    }
-    .brand-name { font-size: 16px; font-weight: 700; color: var(--text); }
-    .brand-sub  { font-size: 11px; color: var(--muted); margin-top: 1px; }
+      .topbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(99, 179, 237, 0.15);
+        border: 1px solid rgba(99, 179, 237, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+      }
+      .brand-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .brand-sub {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 1px;
+      }
 
-    .topbar-right { display: flex; align-items: center; gap: 10px; }
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
 
-    .user-chip {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 14px;
-      font-size: 12px;
-      color: var(--text);
-    }
-    .user-chip .dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--green);
-    }
+      .user-chip {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 5px 14px;
+        font-size: 12px;
+        color: var(--text);
+      }
+      .user-chip .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--green);
+      }
 
-    .btn-icon {
-      background: rgba(255,255,255,0.07);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text);
-      padding: 6px 14px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .btn-icon:hover { background: rgba(255,255,255,0.12); }
+      .btn-icon {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 6px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .btn-icon:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
 
-    /* Slide-down menu */
-    .menu-panel {
-      background: rgba(255,255,255,0.86);
-      border-bottom: 1px solid rgba(100,130,200,0.15);
-      backdrop-filter: blur(14px);
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.28s ease;
-    }
-    .menu-panel.open { max-height: 220px; }
-    .menu-panel nav {
-      display: flex;
-      gap: 0;
-      padding: 10px 20px;
-      flex-wrap: wrap;
-    }
-    .menu-panel nav a {
-      display: block;
-      padding: 9px 18px;
-      font-size: 13px;
-      color: var(--muted);
-      cursor: pointer;
-      border-radius: var(--radius-sm);
-      transition: background 0.15s, color 0.15s;
-      text-decoration: none;
-    }
-    .menu-panel nav a:hover { background: rgba(255,255,255,0.07); color: #fff; }
+      /* Slide-down menu */
+      .menu-panel {
+        background: rgba(255, 255, 255, 0.86);
+        border-bottom: 1px solid rgba(100, 130, 200, 0.15);
+        backdrop-filter: blur(14px);
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.28s ease;
+      }
+      .menu-panel.open {
+        max-height: 220px;
+      }
+      .menu-panel nav {
+        display: flex;
+        gap: 0;
+        padding: 10px 20px;
+        flex-wrap: wrap;
+      }
+      .menu-panel nav a {
+        display: block;
+        padding: 9px 18px;
+        font-size: 13px;
+        color: var(--muted);
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        transition:
+          background 0.15s,
+          color 0.15s;
+        text-decoration: none;
+      }
+      .menu-panel nav a:hover {
+        background: rgba(255, 255, 255, 0.07);
+        color: #fff;
+      }
 
-    /* Main content */
-    .main-content { padding: 24px 20px 40px; max-width: 960px; margin: 0 auto; }
+      /* Main content */
+      .main-content {
+        padding: 24px 20px 40px;
+        max-width: 960px;
+        margin: 0 auto;
+      }
 
-    /* Stats row */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 22px;
-    }
-    .stat-box {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px 18px;
-    }
-    .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 6px; }
-    .stat-value { font-size: 22px; font-weight: 700; color: var(--teal); }
-    .stat-hint  { font-size: 10px; color: var(--muted); margin-top: 2px; }
+      /* Stats row */
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+      .stat-box {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px 18px;
+      }
+      .stat-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .stat-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--teal);
+      }
+      .stat-hint {
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
 
-    /* Section label */
-    .section-title {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
+      /* Section label */
+      .section-title {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
 
-    /* Device cards */
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
-      margin-bottom: 22px;
-    }
+      /* Device cards */
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin-bottom: 22px;
+      }
 
-    .device-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 18px 16px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s, transform 0.15s;
-      position: relative;
-      overflow: hidden;
-    }
-    .device-card:hover { transform: translateY(-2px); }
-    .device-card.on {
-      background: rgba(37, 99, 235, 0.18);
-      border: 2px solid #2563eb;
-      box-shadow: 0 0 18px rgba(37, 99, 235, 0.35);
-      transform: translateY(-2px);
-    }
+      .device-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 18px 16px;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          border-color 0.2s,
+          transform 0.15s;
+        position: relative;
+        overflow: hidden;
+      }
+      .device-card:hover {
+        transform: translateY(-2px);
+      }
+      .device-card.on {
+        background: rgba(37, 99, 235, 0.18);
+        border: 2px solid #2563eb;
+        box-shadow: 0 0 18px rgba(37, 99, 235, 0.35);
+        transform: translateY(-2px);
+      }
 
-    .device-card.on .status-badge {
-      background: #16a34a;
-      color: white;
-    }
+      .device-card.on .status-badge {
+        background: #16a34a;
+        color: white;
+      }
 
-    .device-card.on .card-btn {
-      background: #2563eb;
-      color: white;
-      border-color: #2563eb;
-    }
+      .device-card.on .card-btn {
+        background: #2563eb;
+        color: white;
+        border-color: #2563eb;
+      }
 
-    .toggle.on {
-      background: #16a34a;
-    }
+      .toggle.on {
+        background: #16a34a;
+      }
 
-    .card-btn:active,
-    .btn-all-on:active,
-    .btn-all-off:active {
-      transform: scale(0.96);
-    }
-    /* Glow top strip */
-    .device-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: transparent;
-      transition: background 0.2s;
-    }
-    .device-card.on::before { background: var(--teal); }
+      .card-btn:active,
+      .btn-all-on:active,
+      .btn-all-off:active {
+        transform: scale(0.96);
+      }
+      /* Glow top strip */
+      .device-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: transparent;
+        transition: background 0.2s;
+      }
+      .device-card.on::before {
+        background: var(--teal);
+      }
 
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 14px;
-    }
+      .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 14px;
+      }
 
-    .card-icon {
-      width: 42px; height: 42px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .device-card.on .card-icon {
-      background: rgba(99,179,237,0.18);
-      border-color: rgba(99,179,237,0.45);
-    }
+      .card-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        transition:
+          background 0.2s,
+          border-color 0.2s;
+      }
+      .device-card.on .card-icon {
+        background: rgba(99, 179, 237, 0.18);
+        border-color: rgba(99, 179, 237, 0.45);
+      }
 
-    /* Toggle switch */
-    .toggle-wrap { display: flex; align-items: center; gap: 8px; }
-    .toggle {
-      width: 40px; height: 22px;
-      border-radius: 11px;
-      background: rgba(255,255,255,0.14);
-      position: relative;
-      transition: background 0.25s;
-      flex-shrink: 0;
-    }
-    .toggle.on { background: var(--teal); }
-    .toggle::after {
-      content: '';
-      position: absolute;
-      top: 3px; left: 3px;
-      width: 16px; height: 16px;
-      border-radius: 8px;
-      background: #fff;
-      transition: left 0.22s;
-    }
-    .toggle.on::after { left: 21px; }
+      /* Toggle switch */
+      .toggle-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .toggle {
+        width: 40px;
+        height: 22px;
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.14);
+        position: relative;
+        transition: background 0.25s;
+        flex-shrink: 0;
+      }
+      .toggle.on {
+        background: var(--teal);
+      }
+      .toggle::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        background: #fff;
+        transition: left 0.22s;
+      }
+      .toggle.on::after {
+        left: 21px;
+      }
 
-    .card-name  { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-    .card-room  { font-size: 11px; color: var(--muted); }
+      .card-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 2px;
+      }
+      .card-room {
+        font-size: 11px;
+        color: var(--muted);
+      }
 
-    .status-badge {
-      display: inline-block;
-      padding: 3px 11px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      margin-top: 10px;
-      background: rgba(255,255,255,0.07);
-      color: var(--muted);
-      transition: all 0.2s;
-    }
-    .device-card.on .status-badge {
-      background: rgba(104,211,145,0.18);
-      color: var(--green);
-    }
+      .status-badge {
+        display: inline-block;
+        padding: 3px 11px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 10px;
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--muted);
+        transition: all 0.2s;
+      }
+      .device-card.on .status-badge {
+        background: rgba(104, 211, 145, 0.18);
+        color: var(--green);
+      }
 
-    .timer {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 6px;
-      font-family: 'Courier New', monospace;
-      letter-spacing: 0.5px;
-    }
+      .timer {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 6px;
+        font-family: "Courier New", monospace;
+        letter-spacing: 0.5px;
+      }
 
-    .card-btn {
-      width: 100%;
-      margin-top: 14px;
-      padding: 9px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.06);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: 0.5px;
-      transition: all 0.2s;
-    }
-    .device-card.on .card-btn {
-      border-color: rgba(99,179,237,0.4);
-      background: rgba(99,179,237,0.12);
-      color: var(--teal);
-    }
-    .card-btn:hover { opacity: 0.82; }
+      .card-btn {
+        width: 100%;
+        margin-top: 14px;
+        padding: 9px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        letter-spacing: 0.5px;
+        transition: all 0.2s;
+      }
+      .device-card.on .card-btn {
+        border-color: rgba(99, 179, 237, 0.4);
+        background: rgba(99, 179, 237, 0.12);
+        color: var(--teal);
+      }
+      .card-btn:hover {
+        opacity: 0.82;
+      }
 
-    /* Master switch */
-    .master-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 22px;
-      margin-bottom: 22px;
-    }
-    .master-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .master-title::before {
-      content: '';
-      display: inline-block;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--teal);
-    }
-    .master-btns { display: flex; gap: 12px; }
+      /* Master switch - NEW COLOR LOGIC: default white, active blue */
+      .master-panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 22px;
+        margin-bottom: 22px;
+      }
+      .master-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .master-title::before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal);
+      }
+      .master-btns {
+        display: flex;
+        gap: 12px;
+      }
 
-    .btn-all-on {
-      flex: 1;
-      padding: 13px;
-      border-radius: var(--radius-sm);
-      border: none;
-      background: var(--teal);
-      color: #0a1929;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-      letter-spacing: 0.3px;
-    }
-    .btn-all-on:hover { opacity: 0.85; transform: translateY(-1px); }
+      /* Base button styles: white background, subtle border, dark text */
+      .btn-all-on,
+      .btn-all-off {
+        flex: 1;
+        padding: 13px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        letter-spacing: 0.3px;
+        background: #ffffff;
+        border: 1px solid rgba(100, 130, 200, 0.35);
+        color: #1a2a50;
+      }
 
-    .btn-all-off {
-      flex: 1;
-      padding: 13px;
-      border-radius: var(--radius-sm);
-      background: rgba(255,255,255,0.07);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-    }
-    .btn-all-off:hover { opacity: 0.82; transform: translateY(-1px); }
+      /* Active state (when any device is ON) = blue background + white text */
+      .btn-all-on.active-master,
+      .btn-all-off.active-master {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: white;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+      }
 
-    /* System info box */
-    .system-info {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-    }
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-    }
-   .info-item {
-  padding: 8px 0;
-}
+      /* Hover effects keep the active/inactive logic */
+      .btn-all-on:hover,
+      .btn-all-off:hover {
+        transform: translateY(-1px);
+        filter: brightness(0.96);
+      }
+      .btn-all-on.active-master:hover,
+      .btn-all-off.active-master:hover {
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+      }
 
-.info-item .info-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  color: var(--muted);
-  margin-bottom: 3px;
-}
+      /* System info box */
+      .system-info {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+      }
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+      }
+      .info-item {
+        padding: 8px 0;
+      }
 
-.info-item .info-value {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
+      .info-item .info-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        color: var(--muted);
+        margin-bottom: 3px;
+      }
 
-.info-item .info-value.online {
-  color: var(--green);
-}
-    /* ── Scrollbar ───────────────────────────────────────── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
-  </style>
-</head>
-<body>
+      .info-item .info-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+      }
 
-  <!-- Aurora animated background -->
-  <canvas id="aurora-canvas"></canvas>
+      .info-item .info-value.online {
+        color: var(--green);
+      }
+      /* ── Scrollbar ───────────────────────────────────────── */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Aurora animated background -->
+    <canvas id="aurora-canvas"></canvas>
 
-  <!-- ══════════════════════════════════════════════════
+    <!-- ══════════════════════════════════════════════════
        LOGIN PAGE
   ══════════════════════════════════════════════════ -->
-  <div id="loginPage" class="page">
-    <div class="auth-card">
-      <div class="auth-logo">
-        <div class="icon-wrap">🏠</div> 
-        <h1>Smart House</h1>
-        <p>ESP32 Control System</p>
+    <div id="loginPage" class="page">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <div class="icon-wrap">🏠</div>
+          <h1>Smart House</h1>
+          <p>ESP32 Control System</p>
+        </div>
+
+        <label class="field-label" for="username">Username</label>
+        <input
+          class="auth-input"
+          type="text"
+          id="username"
+          placeholder="Enter your username"
+          autocomplete="off"
+        />
+
+        <label class="field-label" for="password">Password</label>
+        <input
+          class="auth-input"
+          type="password"
+          id="password"
+          placeholder="Enter your password"
+        />
+
+        <button class="btn-primary" onclick="login()">Sign In</button>
+        <button class="btn-link" onclick="forgotPassword()">
+          Forgot Password?
+        </button>
       </div>
-
-      <label class="field-label" for="username">Username</label>
-      <input class="auth-input" type="text" id="username" placeholder="Enter your username" autocomplete="off" />
-
-      <label class="field-label" for="password">Password</label>
-      <input class="auth-input" type="password" id="password" placeholder="Enter your password" />
-
-      <button class="btn-primary" onclick="login()">Sign In</button>
-      <button class="btn-link" onclick="forgotPassword()">Forgot Password?</button>
     </div>
-  </div>
 
-  <!-- ══════════════════════════════════════════════════
+    <!-- ══════════════════════════════════════════════════
        WIFI SETUP PAGE
   ══════════════════════════════════════════════════ -->
-  <div id="wifiPage" class="page hidden">
-    <div class="auth-card">
-      <div class="auth-logo">
-        <div class="icon-wrap">📶</div>
-        <h1>Wi-Fi Setup</h1>
-        <p>Connect to your home network</p>
-      </div>
+    <div id="wifiPage" class="page hidden">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <div class="icon-wrap">📶</div>
+          <h1>Wi-Fi Setup</h1>
+          <p>Connect to your home network</p>
+        </div>
 
-      <label class="field-label" for="wifiName">Network Name (SSID)</label>
-      <input class="auth-input" type="text" id="wifiName" placeholder="Enter Wi-Fi name" autocomplete="off" />
+        <label class="field-label" for="wifiName">Network Name (SSID)</label>
+        <input
+          class="auth-input"
+          type="text"
+          id="wifiName"
+          placeholder="Enter Wi-Fi name"
+          autocomplete="off"
+        />
 
-      <label class="field-label" for="wifiPassword">Network Password</label>
-      <input class="auth-input" type="password" id="wifiPassword" placeholder="Enter Wi-Fi password" />
+        <label class="field-label" for="wifiPassword">Network Password</label>
+        <input
+          class="auth-input"
+          type="password"
+          id="wifiPassword"
+          placeholder="Enter Wi-Fi password"
+        />
 
-      <button class="btn-primary" onclick="connectWifi()">Connect</button>
+        <button class="btn-primary" onclick="connectWifi()">Connect</button>
 
-      <div id="wifiStatus" class="wifi-status">
-        ✅ Connected successfully — loading dashboard…
+        <div id="wifiStatus" class="wifi-status">
+          ✅ Connected successfully — loading dashboard…
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- ══════════════════════════════════════════════════
+    <!-- ══════════════════════════════════════════════════
        DASHBOARD
   ══════════════════════════════════════════════════ -->
-  <div id="dashboard" class="page hidden">
+    <div id="dashboard" class="page hidden">
+      <!-- Top bar -->
+      <div class="topbar">
+        <div class="topbar-brand">
+          <div class="brand-icon">🏠</div>
+          <div>
+            <div class="brand-name">Smart House</div>
+            <div class="brand-sub">ESP32 Control Panel</div>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="user-chip">
+            <div class="dot"></div>
+            <span id="loggedUser">User</span>
+          </div>
+          <button class="btn-icon" onclick="toggleMenu()">☰ Menu</button>
+          <button class="btn-icon" onclick="logout()">Sign Out</button>
+        </div>
+      </div>
 
-    <!-- Top bar -->
-    <div class="topbar">
-      <div class="topbar-brand">
-        <div class="brand-icon">🏠</div>
-        <div>
-          <div class="brand-name">Smart House</div>
-          <div class="brand-sub">ESP32 Control Panel</div>
+      <!-- Slide-down menu -->
+      <div class="menu-panel" id="menuPanel">
+        <nav>
+          <a>🏠 Dashboard</a>
+          <a>📶 Wi-Fi Settings</a>
+          <a>💡 Device Status</a>
+          <a>⏱ Timer Settings</a>
+        </nav>
+      </div>
+
+      <!-- Main content -->
+      <div class="main-content">
+        <!-- Stats row -->
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-label">Devices Active</div>
+            <div class="stat-value" id="activeCount">0</div>
+            <div class="stat-hint">of 3 devices</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Network</div>
+            <div
+              class="stat-value"
+              style="font-size: 14px; margin-top: 4px"
+              id="networkDisplay"
+            >
+              —
+            </div>
+            <div class="stat-hint" id="ipDisplay">192.168.43.119</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">System</div>
+            <div
+              class="stat-value"
+              style="font-size: 14px; color: var(--green); margin-top: 4px"
+            >
+              Online
+            </div>
+            <div class="stat-hint">All systems OK ✅</div>
+          </div>
+        </div>
+
+        <!-- Master switch with updated buttons (white by default, become blue when any device is ON) -->
+        <div class="master-panel">
+          <div class="master-title">Master Switch Panel</div>
+          <div class="master-btns">
+            <button
+              class="btn-all-on"
+              id="masterTurnOnBtn"
+              onclick="turnAllOn()"
+            >
+              ⚡ Turn All ON
+            </button>
+            <button
+              class="btn-all-off"
+              id="masterTurnOffBtn"
+              onclick="turnAllOff()"
+            >
+              ■ Turn All OFF
+            </button>
+          </div>
+        </div>
+
+        <!-- Device cards -->
+        <div class="section-title">Rooms &amp; Devices</div>
+        <div class="cards-grid">
+          <!-- Kitchen Light -->
+          <div
+            class="device-card"
+            id="card-light1"
+            onclick="toggleDevice('light1')"
+          >
+            <div class="card-top">
+              <div class="card-icon">💡</div>
+              <div class="toggle-wrap">
+                <div class="toggle" id="toggle-light1"></div>
+              </div>
+            </div>
+            <div class="card-name">Kitchen Light</div>
+            <div class="card-room">Relay Module · GPIO 23 · IN1</div>
+            <div class="status-badge" id="status-light1">OFF</div>
+            <div class="timer" id="light1Timer">⏱ 00:00:00</div>
+            <button
+              class="card-btn"
+              onclick="
+                event.stopPropagation();
+                toggleDevice('light1');
+              "
+            >
+              Turn ON / OFF
+            </button>
+          </div>
+
+          <!-- Living Room Light -->
+          <div
+            class="device-card"
+            id="card-light2"
+            onclick="toggleDevice('light2')"
+          >
+            <div class="card-top">
+              <div class="card-icon">🔆</div>
+              <div class="toggle-wrap">
+                <div class="toggle" id="toggle-light2"></div>
+              </div>
+            </div>
+            <div class="card-name">Living Room Light</div>
+            <div class="card-room">Relay Module · GPIO 22 · IN2</div>
+            <div class="status-badge" id="status-light2">OFF</div>
+            <div class="timer" id="light2Timer">⏱ 00:00:00</div>
+            <button
+              class="card-btn"
+              onclick="
+                event.stopPropagation();
+                toggleDevice('light2');
+              "
+            >
+              Turn ON / OFF
+            </button>
+          </div>
+
+          <!-- Plugs -->
+          <div
+            class="device-card"
+            id="card-plug1"
+            onclick="toggleDevice('plug1')"
+          >
+            <div class="card-top">
+              <div class="card-icon">🔌</div>
+              <div class="toggle-wrap">
+                <div class="toggle" id="toggle-plug1"></div>
+              </div>
+            </div>
+            <div class="card-name">Plugs</div>
+            <div class="card-room">Relay Module · GPIO 21 · IN3</div>
+            <div class="status-badge" id="status-plug1">OFF</div>
+            <div class="timer" id="plug1Timer">⏱ 00:00:00</div>
+            <button
+              class="card-btn"
+              onclick="
+                event.stopPropagation();
+                toggleDevice('plug1');
+              "
+            >
+              Turn ON / OFF
+            </button>
+          </div>
+        </div>
+
+        <!-- System info -->
+        <div class="section-title">System Information</div>
+        <div class="system-info">
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Active Users</div>
+              <div class="info-value" id="activeUsersDisplay">0 / 5</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">System Status</div>
+              <div class="info-value online">Online ✅</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Wi-Fi Status</div>
+              <div class="info-value online">Connected ✅</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Network Name</div>
+              <div class="info-value" id="sysWifiDisplay">—</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">ESP32 IP Address</div>
+              <div class="info-value">192.168.43.119</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Logged In As</div>
+              <div class="info-value" id="sysUser">—</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Devices Online</div>
+              <div class="info-value" id="sysDeviceCount">0 / 3</div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="topbar-right">
-        <div class="user-chip">
-          <div class="dot"></div>
-          <span id="loggedUser">User</span>
-        </div>
-        <button class="btn-icon" onclick="toggleMenu()">☰ Menu</button>
-        <button class="btn-icon" onclick="logout()">Sign Out</button>
-      </div>
+      <!-- /main-content -->
     </div>
+    <!-- /dashboard -->
 
-    <!-- Slide-down menu -->
-    <div class="menu-panel" id="menuPanel">
-      <nav>
-        <a>🏠 Dashboard</a>
-        <a>📶 Wi-Fi Settings</a>
-        <a>💡 Device Status</a>
-        <a>⏱ Timer Settings</a>
-      </nav>
-    </div>
+    <script>
+      // ── Aurora Background ──────────────────────────────────────
+      (function () {
+        const c = document.getElementById("aurora-canvas");
+        const ctx = c.getContext("2d");
+        let W,
+          H,
+          pts = [];
 
-    <!-- Main content -->
-    <div class="main-content">
+        function resize() {
+          W = c.width = window.innerWidth;
+          H = c.height = window.innerHeight;
+        }
 
-      <!-- Stats row -->
-      <div class="stats-row">
-        <div class="stat-box">
-          <div class="stat-label">Devices Active</div>
-          <div class="stat-value" id="activeCount">0</div>
-          <div class="stat-hint">of 3 devices</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Network</div>
-          <div class="stat-value" style="font-size:14px;margin-top:4px" id="networkDisplay">—</div>
-          <div class="stat-hint" id="ipDisplay">192.168.43.119</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">System</div>
-          <div class="stat-value" style="font-size:14px;color:var(--green);margin-top:4px">Online</div>
-          <div class="stat-hint">All systems OK ✅</div>
-        </div>
-      </div>
+        function makePt() {
+          return {
+            x: Math.random() * W,
+            y: Math.random() * H,
+            r: Math.random() * 1.7 + 0.4,
+            vx: (Math.random() - 0.5) * 0.24,
+            vy: (Math.random() - 0.5) * 0.24,
+            a: Math.random(),
+            da:
+              (Math.random() * 0.005 + 0.002) * (Math.random() < 0.5 ? 1 : -1),
+            hue: Math.random() < 0.5 ? 210 : 165,
+          };
+        }
 
-      <!-- Master switch -->
-      <div class="master-panel">
-        <div class="master-title">Master Switch Panel</div>
-        <div class="master-btns">
-          <button class="btn-all-on"  onclick="turnAllOn()">⚡ Turn All ON</button>
-          <button class="btn-all-off" onclick="turnAllOff()">■ Turn All OFF</button>
-        </div>
-      </div>
+        const orbs = [
+          { x: 0.15, y: 0.35, r: 200, h: 210, a: 0.07 },
+          { x: 0.82, y: 0.22, r: 170, h: 165, a: 0.06 },
+          { x: 0.5, y: 0.78, r: 145, h: 195, a: 0.05 },
+        ];
+        let t = 0;
 
-      <!-- Device cards -->
-      <div class="section-title">Rooms &amp; Devices</div>
-      <div class="cards-grid">
+        function draw() {
+          ctx.clearRect(0, 0, W, H);
+          t += 0.003;
 
-        <!-- Kitchen Light -->
-        <div class="device-card" id="card-light1" onclick="toggleDevice('light1')">
-          <div class="card-top">
-            <div class="card-icon">💡</div>
-            <div class="toggle-wrap">
-              <div class="toggle" id="toggle-light1"></div>
-            </div>
-          </div>
-          <div class="card-name">Kitchen Light</div>
-          <div class="card-room">Relay Module · GPIO 23 · IN1</div>
-          <div class="status-badge" id="status-light1">OFF</div>
-          <div class="timer" id="light1Timer">⏱ 00:00:00</div>
-          <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('light1')">Turn ON / OFF</button>
-        </div>
+          orbs.forEach(function (o, i) {
+            const px = (o.x + Math.sin(t + i) * 0.09) * W;
+            const py = (o.y + Math.cos(t * 0.75 + i) * 0.08) * H;
+            const g = ctx.createRadialGradient(px, py, 0, px, py, o.r);
+            g.addColorStop(0, "hsla(" + o.h + ",65%,55%," + o.a + ")");
+            g.addColorStop(1, "hsla(" + o.h + ",65%,35%,0)");
+            ctx.beginPath();
+            ctx.arc(px, py, o.r, 0, Math.PI * 2);
+            ctx.fillStyle = g;
+            ctx.fill();
+          });
 
-        <!-- Living Room Light -->
-        <div class="device-card" id="card-light2" onclick="toggleDevice('light2')">
-          <div class="card-top">
-            <div class="card-icon">🔆</div>
-            <div class="toggle-wrap">
-              <div class="toggle" id="toggle-light2"></div>
-            </div>
-          </div>
-          <div class="card-name">Living Room Light</div>
-          <div class="card-room">Relay Module · GPIO 22 · IN2</div>
-          <div class="status-badge" id="status-light2">OFF</div>
-          <div class="timer" id="light2Timer">⏱ 00:00:00</div>
-          <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('light2')">Turn ON / OFF</button>
-        </div>
+          pts.forEach(function (p) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.a += p.da;
+            if (p.a > 1 || p.a < 0) p.da *= -1;
+            if (p.x < 0 || p.x > W) p.vx *= -1;
+            if (p.y < 0 || p.y > H) p.vy *= -1;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = "hsla(" + p.hue + ",70%,55%," + p.a * 0.25 + ")";
+            ctx.fill();
+          });
 
-        <!-- Plugs -->
-        <div class="device-card" id="card-plug1" onclick="toggleDevice('plug1')">
-          <div class="card-top">
-            <div class="card-icon">🔌</div>
-            <div class="toggle-wrap">
-              <div class="toggle" id="toggle-plug1"></div>
-            </div>
-          </div>
-          <div class="card-name">Plugs</div>
-          <div class="card-room">Relay Module · GPIO 21 · IN3</div>
-          <div class="status-badge" id="status-plug1">OFF</div>
-          <div class="timer" id="plug1Timer">⏱ 00:00:00</div>
-          <button class="card-btn" onclick="event.stopPropagation(); toggleDevice('plug1')">Turn ON / OFF</button>
-        </div>
-
-      </div>
-
-      <!-- System info -->
-      <div class="section-title">System Information</div>
-      <div class="system-info">
-        <div class="info-grid">
-          <div class="info-item">
-            <div class="info-label">Active Users</div>
-            <div class="info-value" id="activeUsersDisplay">0 / 5</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">System Status</div>
-            <div class="info-value online">Online ✅</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Wi-Fi Status</div>
-            <div class="info-value online">Connected ✅</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Network Name</div>
-            <div class="info-value" id="sysWifiDisplay">—</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">ESP32 IP Address</div>
-            <div class="info-value">192.168.43.119</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Logged In As</div>
-            <div class="info-value" id="sysUser">—</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Devices Online</div>
-            <div class="info-value" id="sysDeviceCount">0 / 3</div>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /main-content -->
-  </div><!-- /dashboard -->
-
-  <script>
-    // ── Aurora Background ──────────────────────────────────────
-    (function () {
-      const c = document.getElementById('aurora-canvas');
-      const ctx = c.getContext('2d');
-      let W, H, pts = [];
-
-      function resize() {
-        W = c.width = window.innerWidth;
-        H = c.height = window.innerHeight;
-      }
-
-      function makePt() {
-        return {
-          x: Math.random() * W,
-          y: Math.random() * H,
-          r: Math.random() * 1.7 + 0.4,
-          vx: (Math.random() - 0.5) * 0.24,
-          vy: (Math.random() - 0.5) * 0.24,
-          a: Math.random(),
-          da: (Math.random() * 0.005 + 0.002) * (Math.random() < 0.5 ? 1 : -1),
-          hue: Math.random() < 0.5 ? 210 : 165,
-        };
-      }
-
-      const orbs = [
-        { x: 0.15, y: 0.35, r: 200, h: 210, a: 0.07 },
-        { x: 0.82, y: 0.22, r: 170, h: 165, a: 0.06 },
-        { x: 0.50, y: 0.78, r: 145, h: 195, a: 0.05 },
-      ];
-      let t = 0;
-
-      function draw() {
-        ctx.clearRect(0, 0, W, H);
-        t += 0.003;
-
-        orbs.forEach(function (o, i) {
-          const px = (o.x + Math.sin(t + i) * 0.09) * W;
-          const py = (o.y + Math.cos(t * 0.75 + i) * 0.08) * H;
-          const g = ctx.createRadialGradient(px, py, 0, px, py, o.r);
-          g.addColorStop(0, 'hsla(' + o.h + ',65%,55%,' + o.a + ')');
-          g.addColorStop(1, 'hsla(' + o.h + ',65%,35%,0)');
-          ctx.beginPath();
-          ctx.arc(px, py, o.r, 0, Math.PI * 2);
-          ctx.fillStyle = g;
-          ctx.fill();
-        });
-
-        pts.forEach(function (p) {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.a += p.da;
-          if (p.a > 1 || p.a < 0) p.da *= -1;
-          if (p.x < 0 || p.x > W) p.vx *= -1;
-          if (p.y < 0 || p.y > H) p.vy *= -1;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = 'hsla(' + p.hue + ',70%,55%,' + (p.a * 0.25) + ')';
-          ctx.fill();
-        });
-
-        for (let i = 0; i < pts.length; i++) {
-          for (let j = i + 1; j < pts.length; j++) {
-            const dx = pts[i].x - pts[j].x;
-            const dy = pts[i].y - pts[j].y;
-            const d = Math.sqrt(dx * dx + dy * dy);
-            if (d < 82) {
-              ctx.beginPath();
-              ctx.moveTo(pts[i].x, pts[i].y);
-              ctx.lineTo(pts[j].x, pts[j].y);
-              ctx.strokeStyle = 'rgba(49,130,206,' + (0.08 * (1 - d / 82)) + ')';
-              ctx.lineWidth = 0.5;
-              ctx.stroke();
+          for (let i = 0; i < pts.length; i++) {
+            for (let j = i + 1; j < pts.length; j++) {
+              const dx = pts[i].x - pts[j].x;
+              const dy = pts[i].y - pts[j].y;
+              const d = Math.sqrt(dx * dx + dy * dy);
+              if (d < 82) {
+                ctx.beginPath();
+                ctx.moveTo(pts[i].x, pts[i].y);
+                ctx.lineTo(pts[j].x, pts[j].y);
+                ctx.strokeStyle =
+                  "rgba(49,130,206," + 0.08 * (1 - d / 82) + ")";
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+              }
             }
+          }
+
+          requestAnimationFrame(draw);
+        }
+
+        resize();
+        for (let i = 0; i < 90; i++) pts.push(makePt());
+        draw();
+        window.addEventListener("resize", resize);
+      })();
+
+      // ── App State ──────────────────────────────────────────────
+      const esp32IP = "http://192.168.43.119"; // Change only if ESP32 IP changes
+
+      const users = [
+        { username: "mahle", password: "1234" },
+        { username: "yaya", password: "1234" },
+        { username: "nka", password: "1234" },
+        { username: "bontle", password: "1234" },
+        { username: "lungelo", password: "1234" },
+      ];
+
+      let currentUser = "";
+      let mainSwitchOn = true;
+
+      const devices = {
+        light1: { status: false, seconds: 0 },
+        light2: { status: false, seconds: 0 },
+        plug1: { status: false, seconds: 0 },
+      };
+
+      // Helper: update master buttons' blue/white state based on any device being ON
+      function updateMasterButtonsState() {
+        const anyDeviceOn =
+          devices.light1.status ||
+          devices.light2.status ||
+          devices.plug1.status;
+        const turnOnBtn = document.getElementById("masterTurnOnBtn");
+        const turnOffBtn = document.getElementById("masterTurnOffBtn");
+        if (turnOnBtn && turnOffBtn) {
+          if (anyDeviceOn) {
+            turnOnBtn.classList.add("active-master");
+            turnOffBtn.classList.add("active-master");
+          } else {
+            turnOnBtn.classList.remove("active-master");
+            turnOffBtn.classList.remove("active-master");
+          }
+        }
+      }
+
+      // ── LOGIN ──────────────────────────────────────────────────
+      function login() {
+        const username = document
+          .getElementById("username")
+          .value.trim()
+          .toLowerCase();
+        const password = document.getElementById("password").value;
+
+        let valid = false;
+
+        for (let i = 0; i < users.length; i++) {
+          if (
+            users[i].username === username &&
+            users[i].password === password
+          ) {
+            valid = true;
+            currentUser = username;
+            break;
           }
         }
 
-        requestAnimationFrame(draw);
-      }
-
-      resize();
-      for (let i = 0; i < 90; i++) pts.push(makePt());
-      draw();
-      window.addEventListener('resize', resize);
-    })();
-
-    // ── App State ──────────────────────────────────────────────
-    const esp32IP = "http://192.168.43.119"; // Change only if ESP32 IP changes
-
-    const users = [
-      { username: "mahle", password: "1234" },
-      { username: "yaya", password: "1234" },
-      { username: "nka", password: "1234" },
-      { username: "bontle", password: "1234" },
-      { username: "lungelo", password: "1234" },
-    ];
-
-    let currentUser = "";
-    let mainSwitchOn = true;
-
-    const devices = {
-      light1: { status: false, seconds: 0 },
-      light2: { status: false, seconds: 0 },
-      plug1: { status: false, seconds: 0 },
-    };
-
-    // ── LOGIN ──────────────────────────────────────────────────
-    function login() {
-      const username = document.getElementById("username").value.trim().toLowerCase();
-      const password = document.getElementById("password").value;
-
-      let valid = false;
-
-      for (let i = 0; i < users.length; i++) {
-        if (users[i].username === username && users[i].password === password) {
-          valid = true;
-          currentUser = username;
-          break;
+        if (!valid) {
+          alert("❌ Incorrect username or password.");
+          return;
         }
+
+        fetch(esp32IP + "/user/login")
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (data) {
+            updateFromESP32Status(data);
+          })
+          .catch(function () {
+            console.warn("Could not register active user on ESP32.");
+          });
+
+        document.getElementById("loginPage").classList.add("hidden");
+        document.getElementById("wifiPage").classList.remove("hidden");
       }
 
-      if (!valid) {
-        alert("❌ Incorrect username or password.");
-        return;
+      function forgotPassword() {
+        alert("🔑 Please contact the service provider to reset your password.");
       }
 
-      fetch(esp32IP + "/user/login")
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          updateFromESP32Status(data);
-        })
-        .catch(function () {
-          console.warn("Could not register active user on ESP32.");
-        });
+      // ── WIFI ───────────────────────────────────────────────────
+      function connectWifi() {
+        const wifiName = document.getElementById("wifiName").value.trim();
+        const wifiPassword = document.getElementById("wifiPassword").value;
 
-      document.getElementById("loginPage").classList.add("hidden");
-      document.getElementById("wifiPage").classList.remove("hidden");
-    }
+        if (!wifiName || !wifiPassword) {
+          alert("Please enter both the Wi-Fi name and password.");
+          return;
+        }
 
-    function forgotPassword() {
-      alert("🔑 Please contact the service provider to reset your password.");
-    }
+        const statusEl = document.getElementById("wifiStatus");
+        statusEl.classList.add("visible");
 
-    // ── WIFI ───────────────────────────────────────────────────
-    function connectWifi() {
-      const wifiName = document.getElementById("wifiName").value.trim();
-      const wifiPassword = document.getElementById("wifiPassword").value;
+        document.getElementById("networkDisplay").textContent = wifiName;
+        document.getElementById("sysWifiDisplay").textContent = wifiName;
+        document.getElementById("loggedUser").textContent = currentUser;
+        document.getElementById("sysUser").textContent = currentUser;
 
-      if (!wifiName || !wifiPassword) {
-        alert("Please enter both the Wi-Fi name and password.");
-        return;
-      }
-
-      const statusEl = document.getElementById("wifiStatus");
-      statusEl.classList.add("visible");
-
-      document.getElementById("networkDisplay").textContent = wifiName;
-      document.getElementById("sysWifiDisplay").textContent = wifiName;
-      document.getElementById("loggedUser").textContent = currentUser;
-      document.getElementById("sysUser").textContent = currentUser;
-
-      setTimeout(function () {
-        document.getElementById("wifiPage").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-        getESP32Status();
-      }, 1200);
-    }
-
-    // ── MENU ───────────────────────────────────────────────────
-    function toggleMenu() {
-      document.getElementById("menuPanel").classList.toggle("open");
-    }
-
-    // ── LOGOUT ─────────────────────────────────────────────────
-    function logout() {
-      fetch(esp32IP + "/user/logout")
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          updateFromESP32Status(data);
-        })
-        .catch(function () {
-          console.warn("Could not logout from ESP32.");
-        });
-
-      document.getElementById("dashboard").classList.add("hidden");
-      document.getElementById("loginPage").classList.remove("hidden");
-      document.getElementById("username").value = "";
-      document.getElementById("password").value = "";
-      document.getElementById("menuPanel").classList.remove("open");
-    }
-
-    // ── DEVICE CONTROL ─────────────────────────────────────────
-    function toggleDevice(name) {
-
-      const newState = !devices[name].status;
-
-      const stateText = newState ? "on" : "off";
-
-      fetch(esp32IP + "/" + name + "/" + stateText)
-        .then(function (r) { return r.text(); })
-        .then(function () {
-
-          devices[name].status = newState;
-
-          updateDisplay();
-
+        setTimeout(function () {
+          document.getElementById("wifiPage").classList.add("hidden");
+          document.getElementById("dashboard").classList.remove("hidden");
           getESP32Status();
-
-        })
-        .catch(function () {
-
-          alert("ESP32 not reachable.");
-
-        });
-}
-function turnAllOn() {
-
-  fetch(esp32IP + "/all/on")
-    .then(function (r) { return r.text(); })
-    .then(function () {
-
-      devices.light1.status = true;
-      devices.light2.status = true;
-      devices.plug1.status = true;
-
-      updateDisplay();
-
-      getESP32Status();
-
-    })
-    .catch(function () {
-
-      alert("ESP32 not reachable.");
-
-    });
-}
-
-function turnAllOff() {
-
-  fetch(esp32IP + "/all/off")
-    .then(function (r) { return r.text(); })
-    .then(function () {
-
-      devices.light1.status = false;
-      devices.light2.status = false;
-      devices.plug1.status = false;
-
-      updateDisplay();
-
-      getESP32Status();
-
-    })
-    .catch(function () {
-
-      alert("ESP32 not reachable.");
-
-    });
-}
-
-    // ── DISPLAY REFRESH ────────────────────────────────────────
-    function updateDisplay() {
-      const devList = ["light1", "light2", "plug1"];
-      let activeCount = 0;
-
-      devList.forEach(function (name) {
-        const on = devices[name].status;
-        const card = document.getElementById("card-" + name);
-        const tog = document.getElementById("toggle-" + name);
-        const badge = document.getElementById("status-" + name);
-
-        if (on) {
-          card.classList.add("on");
-          tog.classList.add("on");
-          badge.textContent = "ON";
-          activeCount++;
-        } else {
-          card.classList.remove("on");
-          tog.classList.remove("on");
-          badge.textContent = "OFF";
-        }
-      });
-
-      document.getElementById("activeCount").textContent = activeCount;
-      document.getElementById("sysDeviceCount").textContent = activeCount + " / 3";
-    }
-
-    function updateFromESP32Status(data) {
-      devices.light1.status = Boolean(data.light1);
-      devices.light2.status = Boolean(data.light2);
-      devices.plug1.status = Boolean(data.plug1);
-
-      mainSwitchOn = data.light1 || data.light2 || data.plug1;
-
-      updateDisplay();
-
-      if (data.activeUsers !== undefined && data.maxUsers !== undefined) {
-        document.getElementById("activeUsersDisplay").textContent =
-          data.activeUsers + " / " + data.maxUsers;
+        }, 1200);
       }
-    }
 
-    function getESP32Status() {
-      fetch(esp32IP + "/status")
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          updateFromESP32Status(data);
-        })
-        .catch(function () {
-          console.warn("Could not fetch ESP32 status.");
+      // ── MENU ───────────────────────────────────────────────────
+      function toggleMenu() {
+        document.getElementById("menuPanel").classList.toggle("open");
+      }
+
+      // ── LOGOUT ─────────────────────────────────────────────────
+      function logout() {
+        fetch(esp32IP + "/user/logout")
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (data) {
+            updateFromESP32Status(data);
+          })
+          .catch(function () {
+            console.warn("Could not logout from ESP32.");
+          });
+
+        document.getElementById("dashboard").classList.add("hidden");
+        document.getElementById("loginPage").classList.remove("hidden");
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+        document.getElementById("menuPanel").classList.remove("open");
+      }
+
+      // ── DEVICE CONTROL ─────────────────────────────────────────
+      function toggleDevice(name) {
+        const newState = !devices[name].status;
+        const stateText = newState ? "on" : "off";
+
+        fetch(esp32IP + "/" + name + "/" + stateText)
+          .then(function (r) {
+            return r.text();
+          })
+          .then(function () {
+            devices[name].status = newState;
+            updateDisplay();
+            updateMasterButtonsState();
+            getESP32Status();
+          })
+          .catch(function () {
+            alert("ESP32 not reachable.");
+          });
+      }
+
+      function turnAllOn() {
+        fetch(esp32IP + "/all/on")
+          .then(function (r) {
+            return r.text();
+          })
+          .then(function () {
+            devices.light1.status = true;
+            devices.light2.status = true;
+            devices.plug1.status = true;
+            updateDisplay();
+            updateMasterButtonsState();
+            getESP32Status();
+          })
+          .catch(function () {
+            alert("ESP32 not reachable.");
+          });
+      }
+
+      function turnAllOff() {
+        fetch(esp32IP + "/all/off")
+          .then(function (r) {
+            return r.text();
+          })
+          .then(function () {
+            devices.light1.status = false;
+            devices.light2.status = false;
+            devices.plug1.status = false;
+            updateDisplay();
+            updateMasterButtonsState();
+            getESP32Status();
+          })
+          .catch(function () {
+            alert("ESP32 not reachable.");
+          });
+      }
+
+      // ── DISPLAY REFRESH ────────────────────────────────────────
+      function updateDisplay() {
+        const devList = ["light1", "light2", "plug1"];
+        let activeCount = 0;
+
+        devList.forEach(function (name) {
+          const on = devices[name].status;
+          const card = document.getElementById("card-" + name);
+          const tog = document.getElementById("toggle-" + name);
+          const badge = document.getElementById("status-" + name);
+
+          if (on) {
+            card.classList.add("on");
+            tog.classList.add("on");
+            badge.textContent = "ON";
+            activeCount++;
+          } else {
+            card.classList.remove("on");
+            tog.classList.remove("on");
+            badge.textContent = "OFF";
+          }
         });
-    }
 
-    // ── TIMERS ─────────────────────────────────────────────────
-    function formatTime(s) {
-      const h = Math.floor(s / 3600);
-      const m = Math.floor((s % 3600) / 60);
-      const sec = s % 60;
+        document.getElementById("activeCount").textContent = activeCount;
+        document.getElementById("sysDeviceCount").textContent =
+          activeCount + " / 3";
 
-      return (
-        String(h).padStart(2, "0") + ":" +
-        String(m).padStart(2, "0") + ":" +
-        String(sec).padStart(2, "0")
-      );
-    }
+        // reflect master buttons state after display update
+        updateMasterButtonsState();
+      }
 
-    setInterval(function () {
-      if (devices.light1.status) devices.light1.seconds++;
-      if (devices.light2.status) devices.light2.seconds++;
-      if (devices.plug1.status) devices.plug1.seconds++;
+      function updateFromESP32Status(data) {
+        devices.light1.status = Boolean(data.light1);
+        devices.light2.status = Boolean(data.light2);
+        devices.plug1.status = Boolean(data.plug1);
 
-      document.getElementById("light1Timer").textContent =
-        "⏱ " + formatTime(devices.light1.seconds);
+        mainSwitchOn = data.light1 || data.light2 || data.plug1;
 
-      document.getElementById("light2Timer").textContent =
-        "⏱ " + formatTime(devices.light2.seconds);
+        updateDisplay();
 
-      document.getElementById("plug1Timer").textContent =
-        "⏱ " + formatTime(devices.plug1.seconds);
-    }, 1000);
+        if (data.activeUsers !== undefined && data.maxUsers !== undefined) {
+          document.getElementById("activeUsersDisplay").textContent =
+            data.activeUsers + " / " + data.maxUsers;
+        }
+      }
 
-    // Every user checks the actual ESP32 status every 2 seconds
-    setInterval(function () {
-      getESP32Status();
-    }, 2000);
-  </script>
-</body>
+      function getESP32Status() {
+        fetch(esp32IP + "/status")
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (data) {
+            updateFromESP32Status(data);
+          })
+          .catch(function () {
+            console.warn("Could not fetch ESP32 status.");
+          });
+      }
+
+      // ── TIMERS ─────────────────────────────────────────────────
+      function formatTime(s) {
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        const sec = s % 60;
+
+        return (
+          String(h).padStart(2, "0") +
+          ":" +
+          String(m).padStart(2, "0") +
+          ":" +
+          String(sec).padStart(2, "0")
+        );
+      }
+
+      setInterval(function () {
+        if (devices.light1.status) devices.light1.seconds++;
+        if (devices.light2.status) devices.light2.seconds++;
+        if (devices.plug1.status) devices.plug1.seconds++;
+
+        document.getElementById("light1Timer").textContent =
+          "⏱ " + formatTime(devices.light1.seconds);
+
+        document.getElementById("light2Timer").textContent =
+          "⏱ " + formatTime(devices.light2.seconds);
+
+        document.getElementById("plug1Timer").textContent =
+          "⏱ " + formatTime(devices.plug1.seconds);
+      }, 1000);
+
+      // Every user checks the actual ESP32 status every 2 seconds
+      setInterval(function () {
+        getESP32Status();
+      }, 2000);
+    </script>
+  </body>
 </html>
